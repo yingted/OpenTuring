@@ -7,7 +7,7 @@
 //
 // Import the MIO stuff if this is Turing
 #ifdef TURING
-#include "..\..\turing\src\mio.rc"
+#include "../../turing/src/mio.rc"
 #endif
 
 //
@@ -17,52 +17,52 @@
 // icon's place in the file.
 //
 #ifdef JAVA
-APP_ICON		ICON	DISCARDABLE	"rsrc\\ready.ico"
-APP_SMALL_ICON		ICON	DISCARDABLE	"rsrc\\readysm.ico"
-RUN_ICON		ICON	DISCARDABLE	"rsrc\\ready.ico"
-RUN_SMALL_ICON		ICON	DISCARDABLE	"rsrc\\readyrunsm.ico"
-DEBUG_ICON		ICON	DISCARDABLE	"rsrc\\ready.ico"
-DEBUG_SMALL_ICON	ICON	DISCARDABLE	"rsrc\\readydbgsm.ico"
+APP_ICON		ICON	DISCARDABLE	"rsrc/ready.ico"
+APP_SMALL_ICON		ICON	DISCARDABLE	"rsrc/readysm.ico"
+RUN_ICON		ICON	DISCARDABLE	"rsrc/ready.ico"
+RUN_SMALL_ICON		ICON	DISCARDABLE	"rsrc/readyrunsm.ico"
+DEBUG_ICON		ICON	DISCARDABLE	"rsrc/ready.ico"
+DEBUG_SMALL_ICON	ICON	DISCARDABLE	"rsrc/readydbgsm.ico"
 #elif TURING
 // TW Change the icons
-APP_ICON		ICON	DISCARDABLE	"rsrc\\turing.ico"
-APP_SMALL_ICON		ICON	DISCARDABLE	"rsrc\\turing-sm.ico"
-RUN_ICON		ICON	DISCARDABLE	"rsrc\\turing.ico"
-RUN_SMALL_ICON		ICON	DISCARDABLE	"rsrc\\turing-sm.ico"
-DEBUG_ICON		ICON	DISCARDABLE	"rsrc\\turing.ico"
-DEBUG_SMALL_ICON	ICON	DISCARDABLE	"rsrc\\turing-sm.ico"
+APP_ICON		ICON	DISCARDABLE	"rsrc/turing.ico"
+APP_SMALL_ICON		ICON	DISCARDABLE	"rsrc/turing-sm.ico"
+RUN_ICON		ICON	DISCARDABLE	"rsrc/turing.ico"
+RUN_SMALL_ICON		ICON	DISCARDABLE	"rsrc/turing-sm.ico"
+DEBUG_ICON		ICON	DISCARDABLE	"rsrc/turing.ico"
+DEBUG_SMALL_ICON	ICON	DISCARDABLE	"rsrc/turing-sm.ico"
 #endif // #elif TURING 
-TWO_UP_ICON		ICON	DISCARDABLE	"rsrc\\two_up.ico"
-JAVA_ICON		ICON	DISCARDABLE	"rsrc\\readyjava.ico"
-CLASS_ICON		ICON	DISCARDABLE	"rsrc\\readyclass.ico"
-TURING_ICON		ICON	DISCARDABLE	"rsrc\\turingfile.ico"
-TURING_UNIT_ICON	ICON	DISCARDABLE	"rsrc\\turingunit.ico"
-TURING_INCLUDE_ICON	ICON	DISCARDABLE	"rsrc\\turinginclude.ico"
-TURING_DEMO_ICON	ICON	DISCARDABLE	"rsrc\\turingdem.ico"
+TWO_UP_ICON		ICON	DISCARDABLE	"rsrc/two_up.ico"
+JAVA_ICON		ICON	DISCARDABLE	"rsrc/readyjava.ico"
+CLASS_ICON		ICON	DISCARDABLE	"rsrc/readyclass.ico"
+TURING_ICON		ICON	DISCARDABLE	"rsrc/turingfile.ico"
+TURING_UNIT_ICON	ICON	DISCARDABLE	"rsrc/turingunit.ico"
+TURING_INCLUDE_ICON	ICON	DISCARDABLE	"rsrc/turinginclude.ico"
+TURING_DEMO_ICON	ICON	DISCARDABLE	"rsrc/turingdem.ico"
 
-BREAKPOINT_ICON		ICON	DISCARDABLE	"rsrc\\breakpoint.ico"
+BREAKPOINT_ICON		ICON	DISCARDABLE	"rsrc/breakpoint.ico"
 
-DBG_FILE_ICON		ICON	DISCARDABLE	"rsrc\\dbgfile.ico"
-DBG_WINDOW_ICON		ICON	DISCARDABLE	"rsrc\\dbgwin.ico"
-DBG_NET_ICON		ICON	DISCARDABLE	"rsrc\\dbgnet.ico"
-DBG_FONT_ICON		ICON	DISCARDABLE	"rsrc\\dbgfont.ico"
-DBG_DIR_ICON		ICON	DISCARDABLE	"rsrc\\dbgdir.ico"
-DBG_PIC_ICON		ICON	DISCARDABLE	"rsrc\\dbgpic.ico"
-DBG_SPRITE_ICON		ICON	DISCARDABLE	"rsrc\\dbgsprite.ico"
-DBG_LEXER_ICON		ICON	DISCARDABLE	"rsrc\\dbglexer.ico"
-DBG_UNKNOWN_ICON	ICON	DISCARDABLE	"rsrc\\dbgunknown.ico"
+DBG_FILE_ICON		ICON	DISCARDABLE	"rsrc/dbgfile.ico"
+DBG_WINDOW_ICON		ICON	DISCARDABLE	"rsrc/dbgwin.ico"
+DBG_NET_ICON		ICON	DISCARDABLE	"rsrc/dbgnet.ico"
+DBG_FONT_ICON		ICON	DISCARDABLE	"rsrc/dbgfont.ico"
+DBG_DIR_ICON		ICON	DISCARDABLE	"rsrc/dbgdir.ico"
+DBG_PIC_ICON		ICON	DISCARDABLE	"rsrc/dbgpic.ico"
+DBG_SPRITE_ICON		ICON	DISCARDABLE	"rsrc/dbgsprite.ico"
+DBG_LEXER_ICON		ICON	DISCARDABLE	"rsrc/dbglexer.ico"
+DBG_UNKNOWN_ICON	ICON	DISCARDABLE	"rsrc/dbgunknown.ico"
 
 //
 // Mouse Cursors
 //
-BREAKPOINT_CURSOR	CURSOR	DISCARDABLE	"rsrc\\breakpoint.cur"
+BREAKPOINT_CURSOR	CURSOR	DISCARDABLE	"rsrc/breakpoint.cur"
 
 //
 // Images
 //
-READY_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc\\ready.bmp"
-TURING_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc\\turing-thanh.bmp"
-TURING_256_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc\\turing256.bmp"
+READY_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc/ready.bmp"
+TURING_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc/turing-thanh.bmp"
+TURING_256_SPLASH_IMAGE	BITMAP	DISCARDABLE	"rsrc/turing256.bmp"
 
 STRINGTABLE
 {
@@ -100,19 +100,19 @@ STRINGTABLE
     //
     
     // Directories
-    IDS_SUPPORT_DIR			"Support\"
-    IDS_READY_BIN    			"Support\Bin\"
-    IDS_INI_DIR				"Support\Ini\"
-    IDS_HELP_DIR			"support\help\"
-    IDS_JAVA_BIN_131			"Support\jre131_09\bin\hotspot\"
-    IDS_JAVA_BIN_BUILT_IN		"Support\jre142_01\bin\client\"
-    IDS_JAVA_JRE_USER_INSTALLED		"Support\jre"
-    IDS_JAVA_LIB_131			"Support\jre131_09\lib\"
-    IDS_JAVA_LIB_BUILT_IN		"Support\jre142_01\lib\"
-    IDS_READY_CLASSES_DIR		"Support\Ready Classes\"
-    IDS_USER_CLASSES_DIR		"Support\Classes\"
-    IDS_EXAMPLES_DIR			"Examples\"
-    IDS_HELP_EXAMPLES_DIR		"Support\Help\Examples\"
+    IDS_SUPPORT_DIR			"Support/"
+    IDS_READY_BIN    			"Support/Bin/"
+    IDS_INI_DIR				"Support/Ini/"
+    IDS_HELP_DIR			"support/help/"
+    IDS_JAVA_BIN_131			"Support/jre131_09/bin/hotspot/"
+    IDS_JAVA_BIN_BUILT_IN		"Support/jre142_01/bin/client/"
+    IDS_JAVA_JRE_USER_INSTALLED		"Support/jre"
+    IDS_JAVA_LIB_131			"Support/jre131_09/lib/"
+    IDS_JAVA_LIB_BUILT_IN		"Support/jre142_01/lib/"
+    IDS_READY_CLASSES_DIR		"Support/Ready Classes/"
+    IDS_USER_CLASSES_DIR		"Support/Classes/"
+    IDS_EXAMPLES_DIR			"Examples/"
+    IDS_HELP_EXAMPLES_DIR		"Support/Help/Examples/"
 
     // Files (INI)
     IDS_JAVA_ADMIN_PREF			"ready_admin.ini"

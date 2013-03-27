@@ -30,7 +30,7 @@
 #endif /* HAVE_LIBGL_S */
 
 #ifdef HAVE_LIBX11
-#include <X11/Xlib.h>
+#include <x11/xlib.h>
 #endif /* HAVE_LIBX11 */
 
 #include <stdlib.h>

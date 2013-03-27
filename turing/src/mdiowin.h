@@ -1,3 +1,6 @@
+typedef unsigned long               _OOT_WPARAM;
+typedef unsigned int DWORD;
+#define WPARAM _OOT_WPARAM
 /*************/
 /* mdiowin.h */
 /*************/

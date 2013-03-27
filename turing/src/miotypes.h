@@ -14,6 +14,7 @@
 /******************/
 #include "language.h"
 #include "levent.h"
+#include<windef.h>
 
 /**********/
 /* Macros */
@@ -40,28 +41,36 @@ typedef unsigned char	UCHAR;
 typedef unsigned char	BYTE;
 typedef unsigned short	WORD;
 typedef unsigned short	USHORT;
-typedef unsigned long	DWORD;
+//typedef unsigned long	DWORD;
 typedef unsigned int	UINT;
 
-typedef UINT		WPARAM;
+//typedef UINT		WPARAM;
 typedef long		LPARAM;
 
 typedef void		*COLOR;
 typedef void		*DEVCONTEXT;
+#define HDC DEVCONTEXT
 typedef void		*DIR;
 typedef void		*FILESPEC;
 typedef void		*FONT;
+#define FONT HFONT
 typedef void		*INSTANCE;
+#define INSTANCE HINSTANCE
 typedef void		*MENU;
+#define MENU HMENU
 typedef void		*MYBITMAP;
+#define MYBITMAP HBITMAP
 typedef void		*PALETTE;
+#define PALETTE HPALETTE
 typedef void		*PIC;
 typedef void		*PICBUFFER;
+#define PICBUFFER PIC
 typedef void		*SPRITELIST;
 typedef void		*REGION;
 typedef void		*TEXT;
 typedef void		*TW_OOT_EVENT;
 typedef void		*WIND;
+#define WIND HWND
 
 typedef struct 
 {

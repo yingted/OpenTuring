@@ -3,10 +3,10 @@
 //
 // Icons
 //
-APP_ICON	ICON	DISCARDABLE	"rsrc\\ready.ico"
-APP_SMALL_ICON	ICON	DISCARDABLE	"rsrc\\readysm.ico"
-RUN_ICON	ICON	DISCARDABLE	"rsrc\\ready.ico"
-RUN_SMALL_ICON	ICON	DISCARDABLE	"rsrc\\readyrunsm.ico"
+APP_ICON	ICON	DISCARDABLE	"rsrc/ready.ico"
+APP_SMALL_ICON	ICON	DISCARDABLE	"rsrc/readysm.ico"
+RUN_ICON	ICON	DISCARDABLE	"rsrc/ready.ico"
+RUN_SMALL_ICON	ICON	DISCARDABLE	"rsrc/readyrunsm.ico"
 
 //
 // Strings

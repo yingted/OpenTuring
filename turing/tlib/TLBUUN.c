@@ -1,4 +1,4 @@
-#include "include\cinterface"
+#include "include/cinterface"
 typedef	TLnat4	TL_TL_priority_t;
 struct	TL_TL_ExceptionInfo {
     TLint4	quitCode;

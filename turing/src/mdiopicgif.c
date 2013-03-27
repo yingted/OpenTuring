@@ -18,7 +18,7 @@
 /******************/
 /* Other includes */
 /******************/
-#include "libungif\\gif_lib.h"
+#include "libungif/gif_lib.h"
 
 #include "mio.h"
 #include "mioerr.h"

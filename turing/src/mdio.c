@@ -1,6 +1,7 @@
 /**********/
 /* mdio.c */
 /**********/
+#include <windows.h>
 
 /****************/
 /* Self include */
@@ -19,7 +20,6 @@
 /*******************/
 /* System includes */
 /*******************/
-#include <windows.h>
 #include <crtdbg.h>
 #include "psapi.h"
 
@@ -82,6 +82,7 @@ static GetGuiResourcesProc	stGetGuiResourcesProc = NULL;
 extern void TL_TLI_TLISS ();extern void TL_TLI_TLIPS ();
 
 
+void	MDIO_ProcessMSWindowsError (DWORD pmMSWindowsErrorCode);
 /************************************************************************/
 /* MDIO_Init								*/
 /************************************************************************/

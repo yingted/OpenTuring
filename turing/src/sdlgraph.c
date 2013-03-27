@@ -1,6 +1,6 @@
 #include "sdlgraph.h"
 
-#include "SDL.h"
+#include "sdl.h"
 
 int SDLGraph_Startup(OOTint width,OOTint height)
 {

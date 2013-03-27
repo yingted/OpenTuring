@@ -1,0 +1,2 @@
+/home/ted/box/OpenTuring/turing/vc projects/JPEG.vcproj_cmake/CMakeFiles/update_cmakelists_ALL.dir
+/home/ted/box/OpenTuring/turing/vc projects/JPEG.vcproj_cmake/CMakeFiles/update_cmakelists_JPEG.dir

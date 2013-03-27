@@ -16,8 +16,8 @@
 /******************/
 /* Other includes */
 /******************/
-#include "jpeg-6b\\jpeglib.h"
-#include "jpeg-6b\\jerror.h"
+#include "jpeg-6b/jpeglib.h"
+#include "jpeg-6b/jerror.h"
 
 #include "mio.h"
 #include "mioerr.h"

@@ -1,3 +1,4 @@
+typedef long DWORD;
 /************************************************************************/
 /* mio.c 								*/
 /*									*/
@@ -1470,7 +1471,7 @@ char	MIO_Getch (void)
 /************************************************************************/
 /* MIO_GetEvent								*/
 /************************************************************************/
-void	MIO_GetEvent (TW_OOT_EVENT **pmEventPtr)
+void	MIO_GetEvent (TW_OOT_EVENT *pmEventPtr)
 {
 // TW    *pmEventPtr = (TW_OOT_EVENT *) EVENT_Get (DEFAULT_WIN);
 } // MIO_GetEvent

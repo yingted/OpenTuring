@@ -1,21 +1,13 @@
-/*************/
 /* tprolog.c */
-/*************/
 
-/*******************/
 /* System includes */
-/*******************/
 #include <windows.h>
 #include "stdio.h"
 
-/****************/
 /* Self include */
-/****************/
 #include "tprolog.h"
 
-/******************/
 /* Other includes */
-/******************/
 #include "tprologdialogs.h"
 
 #include "edprog.h"
@@ -29,17 +21,11 @@
 
 #include "mio.h"
 
-/**********/
 /* Macros */
-/**********/
 
-/*************/
 /* Constants */
-/*************/
 
-/********************/
 /* Global variables */
-/********************/
 // The globals are constants for the entire program and include 
 // registration information, etc.
 Globals		gProgram;
@@ -47,9 +33,7 @@ Globals		gProgram;
 Properties	gProperties;
 BOOL	 	gFileManagerIgnoreFileOperation = FALSE;
 
-/*********/
 /* Types */
-/*********/
 typedef struct SrcPosition		SrcPosition;
 typedef struct Language_ErrMsgs		*TuringErrorPtr;
 typedef struct Language_RunStatus	RunStatus;
@@ -71,9 +55,7 @@ typedef struct RunSettings
     BOOL	stopUserClose;
 } RunSettings;
 
-/**********************/
 /* External variables */
-/**********************/
 extern void	TL (void);
 extern void 	Language_SetupExecutionFromObjectFile (OOTint objectFileStream, 
 		    unsigned char debug, unsigned long maxStackSize, 
@@ -82,9 +64,7 @@ extern void 	Language_SetupExecutionFromObjectFile (OOTint objectFileStream,
 extern void	Language_GetFileName (unsigned short fileNo, TLstring str);
 extern int	MIOTime_GetTicks (void);
 
-/********************/
 /* Static constants */
-/********************/
 // Just a random number used to identify this timer.
 #define TURING_TIMER			512
 
@@ -94,9 +74,7 @@ extern int	MIOTime_GetTicks (void);
 
 #define SYSEXIT_ERROR_STRING		"SysExit"
 
-/********************/
 /* Static variables */
-/********************/
 static FilePath		stStartupDirectory;
 static FilePath		stApplicationPath, stApplicationDirectory;
 static FilePath		stApplicationName;
@@ -114,9 +92,7 @@ static char		*stSizeMarker = OFFSET_STRING;
 static UINT		stMinimumPeriod, stMaximumPeriod, stMinimumEventPeriod;
 static HWND		stDummyWindow;
 
-/******************************/
 /* Static callback procedures */
-/******************************/
 static LRESULT CALLBACK	MyRaisedFrameWindowProcedure (HWND pmWindow, 
 						      UINT pmMessage, 
 						      WPARAM pmWParam, 
@@ -128,9 +104,7 @@ static UINT CALLBACK 	MyRunWithArgsDialogProcedure (HWND pmWindow,
 static void CALLBACK 	MyTimerProcedure (UINT pmID, UINT pmMsg, DWORD pmUser,
 					  DWORD pmDummy1, DWORD pmDummy2);
 
-/*********************/
 /* Static procedures */
-/*********************/
 static int	MyGetMaxStackSize (void);
 static BOOL	MyInitializeGlobals (HINSTANCE pmApplicationInstance);
 static BOOL	MyInitializeWindowClass (void);
@@ -142,14 +116,10 @@ static int	MyGetDirectoryFromPath (const char *pmPath,
 static void MyGetFilePathFromCmdLine(const char *cmdLine, unsigned int start, char *outFileName, char *outFilePath);
 
 
-/***********************/
 /* External procedures */
-/***********************/
-/********************************************************/
 /* WinMain						*/
 /*							*/
 /* Called by the system when the program is first run.	*/
-/********************************************************/
 int WINAPI	WinMain (HINSTANCE pmApplicationInstance, 
 			 HINSTANCE pmPrevInstance,
     			 PSTR pmCmdLine, int pmCmdShow)
@@ -185,7 +155,7 @@ int WINAPI	WinMain (HINSTANCE pmApplicationInstance,
     TL ();
     FileManager ();
     Language ();
-
+#if 0
     //
     // Initialize windows needed by prolog
     //
@@ -193,7 +163,7 @@ int WINAPI	WinMain (HINSTANCE pmApplicationInstance,
     {
     	return 0;
     }
-    
+#endif 
     // 
     // Create the dummy window
     //
@@ -493,84 +463,66 @@ int WINAPI	WinMain (HINSTANCE pmApplicationInstance,
 } // WinMain
 
 
-/****************************************************/
 /* Emulated routines from other parts of the editor */
-/****************************************************/
 void FeedBack(const char *msg) {
 
 }
-/************************************************************************/
 /* Ed_GetLastActiveEditWindow						*/
-/************************************************************************/
 HWND	Ed_GetLastActiveEditWindow (void)
 {
     return NULL;
 } // Ed_GetLastActiveEditWindow
 
 
-/************************************************************************/
 /* Ed_SetModalDialog							*/
-/************************************************************************/
 void	Ed_SetModalDialog (HWND pmWindow)
 {
     // Do nothing
 } // Ed_SetModalDialog
 
 
-/************************************************************************/
 /* EdProp_GetStartupDirectory						*/
-/************************************************************************/
 const char	*EdProp_GetStartupDirectory (void)
 {
     return stStartupDirectory;
 } // EdProp_GetStartupDirectory
 
 
-/************************************************************************/
 /* EdRun_IsProgramPaused						*/
-/************************************************************************/
 BOOL	EdRun_IsProgramPaused (void)
 {
     return stTuringProgramPaused;
 } // EdRun_IsProgramPaused
 
 
-/************************************************************************/
 /* EdRun_IsProgramRunning						*/
-/************************************************************************/
 BOOL	EdRun_IsProgramRunning (void)
 {
     return stTuringProgramRunning;
 } // EdRun_IsProgramRunning
 
 
-/************************************************************************/
 /* EdRun_NotifyAllRunWindowsClosed					*/
 /*									*/
 /* If we're in beginner mode and we've closed the run window, enlarge	*/
 /* the editor window.							*/
-/************************************************************************/
 void	EdRun_NotifyAllRunWindowsClosed (void)
 {
     stAllRunWindowsClosed = TRUE;
 } // EdRun_NotifyAllRunWindowsClosed
 
 
-/************************************************************************/
 /* EdRun_NotifyRunWindowOpened						*/
 /*									*/
 /* If we're in beginner mode and we've opened our first run window, 	*/
 /* minimize the editor window.						*/
-/************************************************************************/
 void	EdRun_NotifyRunWindowOpened (HWND pmRunWindow)
 {
     stAllRunWindowsClosed = FALSE;
 } // EdRun_NotifyRunWindowOpened
 
 
-/************************************************************************/
 /* EdRun_PauseResumeProgram						*/
-/************************************************************************/
 void	EdRun_PauseResumeProgram (BOOL pmActivateSourceWindow, int pmReason)
 {
     if (!stTuringProgramRunning)
@@ -601,16 +553,13 @@ void	EdRun_PauseResumeProgram (BOOL pmActivateSourceWindow, int pmReason)
 } // EdRun_PauseResumeProgram
 
 
-/************************************************************************/
 /* EdRun_KillRunningProgram						*/
-/************************************************************************/
 void	EdRun_KillRunningProgram (void)
 {
     stTuringProgramHalting = TRUE;
 } // EdRun_KillRunningProgram
 
 
-/************************************************************************/
 /* EdRun_KillRunningProgramAndQuit					*/
 /*									*/
 /* Returns: TRUE if the executor will post the quit message.		*/
@@ -621,7 +570,6 @@ void	EdRun_KillRunningProgram (void)
 /* currently running, the the exector will post the quit message once	*/
 /* it has stopped execution, closed its run windows, etc.  Otherwise	*/
 /* it's the responsibility of the caller to post the quit message.	*/
-/************************************************************************/
 BOOL	EdRun_KillRunningProgramAndQuit (void)
 {
     stTuringProgramHalting = TRUE;
@@ -630,15 +578,11 @@ BOOL	EdRun_KillRunningProgramAndQuit (void)
     return stTuringProgramRunning;
 } // EdRun_KillRunningProgramAndQuit
 
-
-/******************************/
+#if 0
 /* Static callback procedures */
-/******************************/
-/************************************************************************/
 /* MyDummyWindowProcedure						*/
 /*									*/
 /* Callback routine for dummy window.		 			*/
-/************************************************************************/
 static LRESULT CALLBACK	MyDummyWindowProcedure (HWND pmWindow, 
 						UINT pmMessage, 
 						WPARAM pmWParam, 
@@ -648,11 +592,9 @@ static LRESULT CALLBACK	MyDummyWindowProcedure (HWND pmWindow,
 } // MyDummyWindowProcedure
 
 
-/************************************************************************/
 /* MyRaisedFrameWindowProcedure						*/
 /*									*/
 /* Callback routine from the raised frame window. 			*/
-/************************************************************************/
 static LRESULT CALLBACK	MyRaisedFrameWindowProcedure (HWND pmWindow, 
 						      UINT pmMessage, 
 						      WPARAM pmWParam, 
@@ -665,7 +607,7 @@ static LRESULT CALLBACK	MyRaisedFrameWindowProcedure (HWND pmWindow,
     if (pmMessage == WM_PAINT)
     {
     	myDeviceContext = BeginPaint (pmWindow, &myPaintStruct);
-    	SetMapMode (myDeviceContext, MM_TEXT);
+    	//SetMapMode (myDeviceContext, MM_TEXT);
     	GetClientRect (pmWindow, &myWindowRect);
     	DrawEdge (myDeviceContext, &myWindowRect, EDGE_RAISED, BF_RECT);
     	EndPaint (pmWindow, &myPaintStruct);
@@ -676,9 +618,7 @@ static LRESULT CALLBACK	MyRaisedFrameWindowProcedure (HWND pmWindow,
 } // MyRaisedFrameWindowProcedure
 
 
-/************************************************************************/
 /* MyRunWithArgsDialogProcedure						*/
-/************************************************************************/
 static UINT CALLBACK 	MyRunWithArgsDialogProcedure (HWND pmDialog, 
 						      UINT pmMessage, 
     						      WPARAM pmWParam, 
@@ -966,22 +906,16 @@ static UINT CALLBACK 	MyRunWithArgsDialogProcedure (HWND pmDialog,
 } // MyRunWithArgsDialogProcedure
 
 
-/************************************************************************/
 /* MyTimerProcedure							*/
-/************************************************************************/
 static void CALLBACK 	MyTimerProcedure (UINT pmID, UINT pmMsg, DWORD pmWindow,
 					  DWORD pmDummy1, DWORD pmDummy2)
 {
     PostMessage ((HWND) pmWindow, WM_TIMER, TURING_TIMER, (LPARAM) NULL);
 } // MyTimerProcedure
+#endif
 
-
-/*********************/
 /* Static procedures */
-/*********************/
-/************************************************************************/
 /* MyGetMaxStackSize							*/
-/************************************************************************/
 static int	MyGetMaxStackSize (void)
 {
     #define MIN_STACK_SIZE_IN_KB	64
@@ -1004,9 +938,7 @@ static int	MyGetMaxStackSize (void)
 } // MyGetMaxStackSize
 
 
-/************************************************************************/
 /* MyInitializeGlobals							*/
-/************************************************************************/
 static BOOL	MyInitializeGlobals (HINSTANCE pmApplicationInstance)
 {
     char	*myPtr;
@@ -1092,7 +1024,7 @@ static BOOL	MyInitializeGlobals (HINSTANCE pmApplicationInstance)
     
     return TRUE;
 } // MyInitializeGlobals
-
+#if 0
 static void MyGetFilePathFromCmdLine(const char *cmdLine, unsigned int start, char *outFileName, char *outFilePath)
 {
 	if (strrchr (cmdLine, '\\') == NULL)
@@ -1122,9 +1054,7 @@ static void MyGetFilePathFromCmdLine(const char *cmdLine, unsigned int start, ch
 	}
 }
 
-/************************************************************************/
 /* MyGetDirectoryFromPath						*/
-/************************************************************************/
 static int	MyGetDirectoryFromPath (const char *pmPath, char *pmDirectory)
 {
     char	*myPtr;
@@ -1141,9 +1071,7 @@ static int	MyGetDirectoryFromPath (const char *pmPath, char *pmDirectory)
 	return 0;
 } // EdFile_GetDirectoryFromPath
 
-/************************************************************************/
 /* MyInitializeWindowClass						*/
-/************************************************************************/
 static BOOL	MyInitializeWindowClass (void)
 {
     char	myRaisedFrameWindowClassName [256];
@@ -1155,9 +1083,7 @@ static BOOL	MyInitializeWindowClass (void)
         myRaisedFrameWindowClassName, 
 	sizeof (myRaisedFrameWindowClassName));
 		     
-    /************************************/
     /* Register the raised window class */
-    /************************************/
     myRaisedFrameClass.cbSize =        sizeof (myRaisedFrameClass);
     // Set window class to redraw when window size changes
     myRaisedFrameClass.style =	       CS_HREDRAW | CS_VREDRAW;
@@ -1190,9 +1116,7 @@ static BOOL	MyInitializeWindowClass (void)
     	return FALSE;
     }
     
-    /************************************/
     /* Register the raised window class */
-    /************************************/
     myDummyClass.cbSize =        sizeof (myDummyClass);
     // Set window class to redraw when window size changes
     myDummyClass.style =	 CS_HREDRAW | CS_VREDRAW;
@@ -1227,7 +1151,7 @@ static BOOL	MyInitializeWindowClass (void)
     
     return TRUE;
 } // MyInitializeWindowClass
-
+#endif
 static BOOL MyInitializeRunFromByteCode(RunSettings *runSettings, RunArgs *runArgs, char *filePath, char *fileName, BOOL useSeparateFile)
 {
 	long	myTuringFileDesciptor;
@@ -1381,7 +1305,7 @@ static BOOL MyInitializeRunFromByteCode(RunSettings *runSettings, RunArgs *runAr
     TL_TLI_TLICL (myTuringFileDesciptor);
 	return TRUE;
 }
-
+#if 0
 static BOOL MyInitializeRunFromFile(RunSettings *runSettings, RunArgs *runArgs, char *filePath, char *fileName, BOOL useSeparateFile)
 {
 	TextHandleType	myTuringTextHandle;
@@ -1519,9 +1443,7 @@ static BOOL MyInitializeRunFromFile(RunSettings *runSettings, RunArgs *runArgs, 
 	return TRUE;
 }
 
-/************************************************************************/
 /* MyProcessWaitingEvents						*/
-/************************************************************************/
 static void	MyProcessWaitingEvents (BOOL pmGetAtLeastOneEvent)
 {
     MSG		myMessage;
@@ -1546,4 +1468,4 @@ static void	MyProcessWaitingEvents (BOOL pmGetAtLeastOneEvent)
     }
 } // MyProcessWaitingEvents
 
-
+#endif

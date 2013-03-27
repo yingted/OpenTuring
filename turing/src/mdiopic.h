@@ -126,14 +126,14 @@ extern void	MDIOPic_IncrementUse (PIC pmPic);
 extern BOOL	MDIOPic_IsSupportedFormat (int pmFormat);
 extern BOOL	MDIOPic_LoadBMP (const char *pmFullPathName, int *pmWidth,
 				 int *pmHeight, PIC *pmMDPicInfo);
-extern BOOL	MDIOPic_Rotate (PICBUFFER pmSrcPic, PICBUFFER pmDestPic, 
+extern BOOL	MDIOPic_Rotate (PICBUFFER pmSrcPic, PICBUFFER *pmDestPic, 
 			        int pmSrcWidth, int pmSrcHeight, 
 			        int *pmDestWidth, int *pmDestHeight,
 			        int pmAngle, int pmXAxis, int pmYAxis, 
 			        int pmBGColorNum);
 extern BOOL	MDIOPic_SaveImage (const char *pmFullPathName, 
 				   PIC pmMDPicInfo);
-extern BOOL	MDIOPic_Scale (PICBUFFER pmSrcPic, PICBUFFER pmDestPic, 
+extern BOOL	MDIOPic_Scale (PICBUFFER pmSrcPic, PICBUFFER *pmDestPic, 
 			       int pmSrcWidth, int pmSrcHeight, 
 			       int pmDestWidth, int pmDestHeight);
 extern int	MDIOPic_SizePic (OOTint pmX1, OOTint pmY1, OOTint pmX2, 

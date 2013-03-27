@@ -373,7 +373,7 @@ BOOL	EdFile_CreateDirectoriesIfNecessary (const char *pmPathName)
 
     myPtr = pmPathName;
 
-    // Skip over x:\ or \\server\ 
+    // Skip over x:\ or \\server\ (*inserted* gcc continues this comment)
     if (isalpha (pmPathName [0]))
     {
 	myPtr = &pmPathName [3];

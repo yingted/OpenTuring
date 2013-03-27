@@ -7,8 +7,8 @@
 //
 // Icons
 //
-MIO_RUN_ICON		ICON	DISCARDABLE	"..\\..\\ready\\src\\rsrc\\turing.ico"
-MIO_RUN_SMALL_ICON	ICON	DISCARDABLE	"..\\..\\ready\\src\\rsrc\\turingrunsm.ico"
+MIO_RUN_ICON		ICON	DISCARDABLE	"../../ready/src/rsrc/turing.ico"
+MIO_RUN_SMALL_ICON	ICON	DISCARDABLE	"../../ready/src/rsrc/turingrunsm.ico"
 
 STRINGTABLE
 {

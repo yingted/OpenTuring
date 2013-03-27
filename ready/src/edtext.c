@@ -23,7 +23,7 @@
     #include "jsmain.h"
 #elif defined (TPROLOG)
     #include "edfail.h"
-    #include "..\..\turing\src\tprologdialogs.h"
+    #include "../../turing/src/tprologdialogs.h"
 #else
     #include "edfail.h"
     #include "edjava.h"
@@ -2184,7 +2184,7 @@ int	EdText_SelectLine1 (TextPtr pmTextPtr, int pmLine)
 int	EdText_SelectWord (TextPtr pmTextPtr)
 {
     BOOL		myWasSelection;
-    unsigned char	*myPtr;
+    char	*myPtr;
     int 		myStartWordPos, myEndWordPos;
     
 #if !defined (CONSOLE) && !defined (TPROLOG)

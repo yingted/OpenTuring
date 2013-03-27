@@ -42,7 +42,7 @@ extern void	MIOPic_Draw (OOTint pmPicID, OOTint pmX, OOTint pmY,
 extern void	MIOPic_DrawPic (OOTint pmX, OOTint pmY, PICBUFFER pmBuffer, 
 				OOTint pmMode);
 extern BOOL	MIOPic_DrawFrames (struct EventDescriptor *pmEvent,
-				   void *pmPicIDs, OOTint pmX, OOTint pmY,
+				   OOTint *pmPicIDs, OOTint pmX, OOTint pmY,
 				   OOTint pmMode, OOTint pmNumFrames, 
 				   OOTint pmArraySize, 
 				   OOTint pmDelayBetweenFrames,

@@ -1,4 +1,4 @@
-#include "include\cinterface"
+#include "include/cinterface"
 
 void main (argc, argv)
 TLint4	argc;
