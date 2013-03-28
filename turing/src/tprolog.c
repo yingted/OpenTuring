@@ -223,9 +223,11 @@ int WINAPI	WinMain (HINSTANCE pmApplicationInstance,
     	    					IDS_TPROLOG_CANT_OPEN_OBJECT_FILE, myFileName);
 				return 0;
 			}
+#if 0
     	} else if (strncmp (pmCmdLine, "-Debug", 6) == 0)
 		{
 			DebugBreak ();
+#endif
 		}
     }
 
@@ -345,11 +347,12 @@ int WINAPI	WinMain (HINSTANCE pmApplicationInstance,
 
 	    // If we're using sprites, then it may be time to update the screen.
 	    MIO_UpdateSpritesIfNecessary ();
-
+#if 0
     	    if (gProperties.executionDelay > 0)
     	    {
     	    	Sleep (gProperties.executionDelay);
     	    }
+#endif
         }
 
 	myTuringProgramWaitingForEvent = FALSE; 
