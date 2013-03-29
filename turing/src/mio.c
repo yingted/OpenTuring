@@ -1,4 +1,3 @@
-typedef long DWORD;
 /************************************************************************/
 /* mio.c 								*/
 /*									*/
@@ -110,6 +109,7 @@ typedef long DWORD;
 #include "mioglgraph.h"
 
 #include "edint.h"
+#include <stdio.h>
 
 // Test to make certain we're not accidentally including <windows.h> which
 // might allow for windows contamination of platform independent code.
@@ -268,7 +268,7 @@ static char	*stSysExitString;
 /********************/
 // These three files are never actually modified.  Instead, they act as
 // place holders from stdin, stdout and stderr
-static MIOFILE		*stMIOStdin, *stMIOStdout, *stMIOStderr;
+static MIOFILE		*stMIOStdin, *stMIOStdout, *stMIOStderr;//first 2 do nothing
 // This represents the window or file that stdin is to be read from
 static MIOFILE		*stMIOStdinRedirect;
 // This represents the window and/or file that stdout is to be sent to
@@ -276,11 +276,11 @@ static MIOFILE		*stMIOStdoutRedirect;
 // This represent the window and/or file that echoed input is to be sent to
 static MIOFILE		*stMIOStdinEcho;
 // This represents the default run window
-static void		*stDefaultRunWindow;
+static const void		*stDefaultRunWindow = NULL;
 // This is the list of run windows
 static WindowListPtr	stRunWindowListHead = NULL;
 // Is input from a file being echoed
-static BOOL		stEchoInputFromFile;	
+static BOOL		stEchoInputFromFile;
 // If echoing input, has the echo reached a newline yet.  This is used 
 static BOOL		stInputEchoReachedNewline = TRUE;	
 // Are we currently executing an OOT program
@@ -312,7 +312,6 @@ static const char	*stTestSuiteOutputDirectory;
 /*********************/
 /* Static procedures */
 /*********************/
-static void		MyCloseRunWindows (BOOL pmHiddenOnly);
 static MIOFILE 		*MyCreateMIOFile (void);
 static MIOPRINTER 	*MyCreateMIOPrinter (const char *pmAttribs);
 static void		MyFreeMIOPrinter (MIOPRINTER *pmMIOPrinter);
@@ -323,22 +322,6 @@ static MIOFILE		*MyMakeMIOFILEFromFile (void *pmFile, int pmFileType);
 static MIOFILE		*MyMakeMIOFILEFromWindow (WIND pmWindow);
 static void		MyMoveToFrontOfRunWindowList (WIND pmWindow);
 static void		MySetRunWindowTitles (void);
-static int		MyTuringFclose (MIOFILE *pmMIOFile);
-static int		MyTuringFflush (MIOFILE *pmMIOFile);
-static int		MyTuringFgetc (MIOFILE *pmMIOFile);
-static MIOFILE 		*MyTuringFopen (OOTstring pmFileName, 
-							OOTstring pmFileMode);
-static int		MyTuringFputc (OOTint pmChar, MIOFILE *pmFilePtr);
-static int		MyTuringFputs (OOTstring pmString, MIOFILE *pmFilePtr);
-static int		MyTuringFread (void *pmBuffer, OOTint pmSize, 
-				       OOTint pmNum, MIOFILE *pmMIOFile);
-static void		MyTuringFreset (MIOFILE *pmMIOFile);
-static int		MyTuringFseek (MIOFILE *pmMIOFile, OOTint pmOffset, 
-				       OOTint pmWhence);
-static long		MyTuringFtell (MIOFILE *pmMIOFile);
-static int		MyTuringFwrite (void *pmBuffer, OOTint pmSize, 
-				        OOTint pmNum, MIOFILE *pmMIOFile);
-static int		MyTuringUngetc (OOTint pmChar, MIOFILE *pmFilePtr);
 static void		MyWipeMIOFile (MIOFILE *pmMIOFile);
 
 
@@ -368,18 +351,18 @@ void	MIO_Initialize (INSTANCE pmApplicationInstance, int pmOS,
     MIOWin_Init (pmCenterOutputWindow, pmStopUserClose);	
     					// Initialize window stuff
     
-    TL_TLI_TLIFCL = MyTuringFclose;
-    TL_TLI_TLIFOP = MyTuringFopen;
-    TL_TLI_TLIFPC = MyTuringFputc;
-    TL_TLI_TLIFPS = MyTuringFputs;
-    TL_TLI_TLIFGC = MyTuringFgetc;
-    TL_TLI_TLIFUG = MyTuringUngetc;
-    TL_TLI_TLIFSK = MyTuringFseek;
-    TL_TLI_TLIFTL = MyTuringFtell;
-    TL_TLI_TLIFFL = MyTuringFflush;
-    TL_TLI_TLIFRE = MyTuringFread;
-    TL_TLI_TLIFWR = MyTuringFwrite;
-    TL_TLI_TLIFZ  = MyTuringFreset;
+    TL_TLI_TLIFCL = fclose;
+    TL_TLI_TLIFOP = fopen;
+    TL_TLI_TLIFPC = fputc;
+    TL_TLI_TLIFPS = fputs;
+    TL_TLI_TLIFGC = fgetc;
+    TL_TLI_TLIFUG = ungetc;
+    TL_TLI_TLIFSK = fseek;
+    TL_TLI_TLIFTL = ftell;
+    TL_TLI_TLIFFL = fflush;
+    TL_TLI_TLIFRE = fread;
+    TL_TLI_TLIFWR = fwrite;
+    TL_TLI_TLIFZ  = rewind;
     
     //
     // Set up standard input, standard output and standard error    
@@ -397,11 +380,7 @@ void	MIO_Initialize (INSTANCE pmApplicationInstance, int pmOS,
     // Initialize individual MIO modules
     MIOError_Init ();
     MIOFile_Init (pmOS, pmOOTDir, pmHomeDir);
-    MIOFile_SetExecutionDirectory (pmHomeDir);
     MIOLexer_Init ();
-    MIOMusic_Init ();
-    MIONet_Init ();
-    MIOSys_Init (pmSysExitString);
     MIOTime_Init ();
 
     strcpy (stTextStdoutWindow, TEXT_STDOUT_ATTRIB);
@@ -432,9 +411,6 @@ void	MIO_Initialize (INSTANCE pmApplicationInstance, int pmOS,
 /************************************************************************/
 void	MIO_Finalize (void)
 {
-    MIOWin_Finalize ();
-    MIOMusic_Finalize ();
-    MIONet_Finalize ();
 } // MIO_Finalize
 
 
@@ -447,7 +423,6 @@ void	MIO_Finalize (void)
 /************************************************************************/
 void	MIO_Init_Free (void)
 {
-    EdInt_AddFailMessage ("MIO_Init_Free called");
     
     //
     // Close any open run windows
@@ -542,6 +517,7 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     //    	
     // Initialize everything
     //
+#if 0
     MIOWin_InitRun ();
     
     //
@@ -589,7 +565,7 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
 	    }
 	}
     }
-
+#endif
     //
     // Create the input file, if there is one
     //
@@ -598,19 +574,24 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
         
     if ((pmInputPath != NULL) && (pmInputPath [0] != 0))
     {
-	SRCPOS	mySrcPos;
-    	char	myDescription [1024];
-    	
-    	stEchoInputFromFile = pmEchoInput;
-    	myFile = MDIO_DiskFile_Open (pmInputPath, "r");
-    	if (myFile == NULL)
-    	{
-//    	        EdGUI_Message1 (pmWindow, 0, IDS_FILE_OPEN_FAILED_TITLE,
-//    	            IDS_FILE_OPEN_FAILED_MESSAGE, pmPathName, 
-//    	            EdFail_GetErrorMessage (myErrorBuffer), myErrorCode);
-    	    return FALSE;
-    	}
-    	stMIOStdinRedirect -> filePtr = myFile;
+        SRCPOS mySrcPos;
+        char myDescription [1024];
+    	if(!strncmp("-",pmInputPath,2)){
+		stEchoInputFromFile=FALSE;
+		stMIOStdinRedirect -> filePtr = stdin;
+	}else{
+            
+            stEchoInputFromFile = pmEchoInput;
+            myFile = MDIO_DiskFile_Open (pmInputPath, "r");
+            if (myFile == NULL)
+            {
+//                EdGUI_Message1 (pmWindow, 0, IDS_FILE_OPEN_FAILED_TITLE,
+//                    IDS_FILE_OPEN_FAILED_MESSAGE, pmPathName, 
+//                    EdFail_GetErrorMessage (myErrorBuffer), myErrorCode);
+                return FALSE;
+            }
+            stMIOStdinRedirect -> filePtr = myFile;
+	}
 	stMIOStdinRedirect -> fileType = FILE_KIND_FILE;
 	
 	// Register stdin as a file
@@ -630,8 +611,12 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     // Create the output file, if there is one
     //
     MyWipeMIOFile (stMIOStdoutRedirect);
-    
-    if (pmOutputToPrinter || 
+    if(pmOutputPath&&!strncmp(pmOutputPath,"-",2)){
+    	myStdoutUsesWindow = FALSE;
+    	myStdoutIsRedirected = TRUE;
+	stMIOStdoutRedirect -> filePtr = stdout;
+	stMIOStdoutRedirect -> fileType = FILE_KIND_FILE;
+    }else if (pmOutputToPrinter || 
         ((pmOutputPath != NULL) && (pmOutputPath [0] != 0)))
     {
 	SRCPOS	mySrcPos;
@@ -700,15 +685,6 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     	    myDefaultWindowMode = WINDOW_KIND_TEXT;
     	}
 
-	// Set up the desciption for debugging purposes
-	strcpy (myDescription, "Standard Input/Output: ");
-	strcat (myDescription, myWindowAttribs);
-	MIOWindow_SetDescription (myDescription);
-    	EdInt_AddFailMessage ("Create standard input/output window");
-	stDefaultRunWindow = MIOWin_CreateWindow (myWindowAttribs);
-
-	MIO_selectedRunWindow = stDefaultRunWindow;
-	MIO_selectedRunWindowInfo = MIOWin_GetInfo (MIO_selectedRunWindow);
 
 	if (myStdinUsesWindow)
     	{
@@ -752,16 +728,10 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     // Create the standard error window    
     //
     MyWipeMIOFile (stMIOStderr);
-    strcpy (myDescription, "Standard Error: ");
-    strcat (myDescription, stStdErrorWindowAttribs);
-    MIOWindow_SetDescription (myDescription);
-    EdInt_AddFailMessage ("Create standard error window");
-    stMIOStderr -> windowPtr = (void *) MIOWin_CreateWindow (
-    						stStdErrorWindowAttribs);
-    stMIOStderr -> windowType = WINDOW_KIND_TEXT;
-    MIOWindow_RegisterWindow (TURINGSTDERR, 
-    			      MIOWin_GetInfo (stMIOStderr -> windowPtr));
-    
+    stMIOStderr -> filePtr = stderr;
+    stMIOStderr -> fileType = FILE_KIND_FILE;
+    stMIOStderr -> windowPtr = NULL;
+    stMIOStderr -> windowType = NULL;
     // Set stInputEchoReachedNewline so that we echo the next line read in.
     stInputEchoReachedNewline = TRUE;
     
@@ -769,16 +739,16 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     TL_TLI_TLIEFR(TURINGSTDIN);		/* Reset TLIB eof marker */
 
     // Set the execution directory.
-    FileManager_ChangeExecDirectory ((OOTstring) pmExecutionDirectory);
-    MIOFile_SetExecutionDirectory (pmExecutionDirectory);
+    //FileManager_ChangeExecDirectory ((OOTstring) pmExecutionDirectory);
+    //MIOFile_SetExecutionDirectory (pmExecutionDirectory);
 
     //
     // The following assumes that the first three entries of TL_TLI_TLIS are
     // stdin, stdout, stderr and overrides them to point to
     // MIO_FILE structures using the entry point TL_TLI_TLISF.
     //
-    TL_TLI_TLISF (TURINGSTDIN, (char *) stMIOStdin);
-    TL_TLI_TLISF (TURINGSTDOUT, (char *) stMIOStdout);
+    TL_TLI_TLISF (TURINGSTDIN, (char *) stMIOStdinRedirect);
+    TL_TLI_TLISF (TURINGSTDOUT, (char *) stMIOStdoutRedirect);
     TL_TLI_TLISF (TURINGSTDERR, (char *) stMIOStderr);
     
     // We are now executing a program
@@ -787,15 +757,15 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     // Initialize for run individual MIO modules
     MIO_parallelIOPort = pmParallelIOPort;
     
-    MIOFont_Init_Run ();
-    MIOMouse_Init_Run ();	    	// Set button chooser
-    MIOMusic_Init_Run (pmAllowSound);	// Set whether sound allowed and
+    //MIOFont_Init_Run ();
+    //MIOMouse_Init_Run ();	    	// Set button chooser
+    //MIOMusic_Init_Run (pmAllowSound);	// Set whether sound allowed and
     					// default note octave/duration
-    MIOSprite_Init_Run ();		// Set whether sprites in use/timer
+    //MIOSprite_Init_Run ();		// Set whether sprites in use/timer
     MIOTime_Init_Run ();	    	// Set the start of app time
-    MIOSys_Init_Run (pmAllowSysExec);   // Set whether Sys.Exec allowed
+    //MIOSys_Init_Run (pmAllowSysExec);   // Set whether Sys.Exec allowed
 
-	MIOGLGraph_InitRun (); // init SDL
+	//MIOGLGraph_InitRun (); // init SDL
 
     return TRUE;
 } // MIO_Init_Run
@@ -806,8 +776,6 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
 /************************************************************************/
 void	MIO_Finalize_Run (void)
 {
-    WindowListPtr	myPtr;
-    MIOWinInfoPtr	myInfo;
     int	cnt;
 
     // We are no longer executing a program
@@ -815,21 +783,6 @@ void	MIO_Finalize_Run (void)
     
     // Before the sprites disappear, we do a final repaint copying all 
     // the sprites to offscreen bitmap for each window that has sprites.
-    myPtr = stRunWindowListHead;
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-	if (myInfo -> spriteQueueHead != NULL)
-	{
-	    // This also redraws the screen, copying any sprites permanently
-	    // onto the offscreen bitmap.
-	    MIOSprite_Dirty (myInfo, 0, 0, myInfo -> width, myInfo -> height);
-	    MIOSprite_UpdateIfNecessary (TRUE, TRUE);
-	}
-	
-	myPtr = myPtr -> next;
-    }
-
     // Notify the debugger so that items closed now will still show up in the
     // debugger allocated objects section.
     EdInt_NotifyDebuggerFinalizeRun ();
@@ -845,16 +798,6 @@ void	MIO_Finalize_Run (void)
     	MIO_IDFree (cnt);
     }
     stIDCounter = 0;
-    
-    // No more access to selected window
-    MIO_selectedRunWindow = NULL;
-    MIO_selectedRunWindowInfo = NULL;
-
-    // Close all hidden run windows
-    MyCloseRunWindows (HIDDEN_ONLY);
-
-	// Close SDL Window
-	MIOGLGraph_CloseWin ();
 
     // Close any files opened for redirection
     if (stMIOStdinRedirect -> fileType == FILE_KIND_FILE)
@@ -886,9 +829,7 @@ void	MIO_Finalize_Run (void)
     }
 
     // Finalize individual MIO modules
-    MIOFont_Finalize_Run ();
     MIOLexer_Finalize_Run ();
-    MIOMusic_Finalize_Run ();
 
     // If this is a test suite program, then write the 
     // stdout window to the appropriate file.
@@ -1034,7 +975,6 @@ void	MIO_CheckOuputWindowIsInGraphicsMode (const char *pmRoutineName)
 /************************************************************************/
 void	MIO_CloseAllRunWindows (void)
 {
-    MyCloseRunWindows (ALL_WINDOWS);
 } // MIO_CloseAllRunWindows
 
 
@@ -1050,8 +990,7 @@ void	MIO_DebugOut (const char *pmFormat, ...)
     MDIO_vsprintf (myString, pmFormat, myArgList);
     va_end (myArgList);
     
-    MyTuringFputs (myString, stMIOStderr);
-    MyTuringFputs ("\n", stMIOStderr);
+    fputs (myString, stMIOStderr);
 } // MIO_DebugOut
 
 
@@ -2496,85 +2435,6 @@ void	MIO_UpdateSpritesIfNecessary (void)
 /* Static procedures */
 /*********************/
 /************************************************************************/
-/* MyCloseRunWindows							*/
-/************************************************************************/
-static void	MyCloseRunWindows (BOOL pmHiddenOnly)
-{
-    WindowListPtr	myPtr = stRunWindowListHead;
-    WIND		myWindow;
-    MIOWinInfoPtr	myInfo;
-    
-    while (myPtr != NULL)
-    {
-	myWindow = myPtr -> window;
-	myInfo = MIOWin_GetInfo (myWindow);
-	
-	// Note that by closing the window, we're removing it from the
-	// list, so we had better make certain we aren't referencing
-	// it anymore.
-	myPtr = myPtr -> next;
-
-	//
-	// Close the window (note, we don't close the stderr window when closing
-	// hidden Windows just in case somehow Turing gets a segmentation fault 
-	// and want to write to stderr.
-	//
-	if (!pmHiddenOnly || (!MDIOWin_IsVisible (myWindow) && 
-			      (myInfo -> turingWindowID != TURINGSTDERR)))
-	{
-	    // We send a message to make certain we don't receive any
-	    // messages while closing the window.
-    	    switch (MIOWin_GetWindowType (myWindow))
-    	    {
-		case WINDOW_TYPE_MIO_TEXT:
-		case WINDOW_TYPE_MIO_GRAPHICS:
-		case WINDOW_TYPE_MIO_DIALOG:
-    
-/*	    	    MIOWindow_RegisterClose (myInfo -> turingWindowID);
-
-		    //
-		    // Special case: Ifd there's no redirection, then stdin and stdout
-		    // share the same run window.  We check this case and register both
-		    // as closed in this case.
-		    //
-		    if (myInfo -> turingWindowID == TURINGSTDIN)
-		    {
-			if (stMIOStdinRedirect -> windowPtr == 
-			    stMIOStdoutRedirect -> windowPtr)
-			{
-			    MIOWindow_RegisterClose (TURINGSTDOUT);
-			    stMIOStdoutRedirect -> windowType = 0;
-			    stMIOStdoutRedirect -> windowPtr = NULL;
-			}
-			stMIOStdinRedirect -> windowType = 0;
-			stMIOStdinRedirect -> windowPtr = NULL;
-		    }
-		    if (myInfo -> turingWindowID == TURINGSTDOUT)
-		    {
-			if (stMIOStdinRedirect -> windowPtr == 
-			    stMIOStdoutRedirect -> windowPtr)
-			{
-			    MIOWindow_RegisterClose (TURINGSTDIN);
-			    stMIOStdinRedirect -> windowType = 0;
-			    stMIOStdinRedirect -> windowPtr = NULL;
-			}
-			stMIOStdoutRedirect -> windowType = 0;
-			stMIOStdoutRedirect -> windowPtr = NULL;
-		    }
-*/
-	    	    MIOWin_CloseWindow (myWindow);
-
-		    break;
-		default:
-		    // TW Assertion failure
-		    break;
-	    } // switch
-	} // if
-    }    		     
-} // MyCloseRunWindows
-
-
-/************************************************************************/
 /* MyCreateMIOFile							*/
 /************************************************************************/
 static MIOFILE 	*MyCreateMIOFile (void)
@@ -2644,54 +2504,6 @@ static void	MyFreeMIOPrinter (MIOPRINTER *pmMIOPrinter)
     }
     free (pmMIOPrinter);
 } // MyFreeMIOFile
-
-
-#ifdef JUNK
-/************************************************************************/
-/* MyFileOpenForRead							*/
-/************************************************************************/
-static HANDLE	MyFileOpenForRead (const char *pmPathName, int *pmErrorCode)    
-{
-    HANDLE	myFile;
-    
-    myFile = CreateFile (pmPathName, GENERIC_READ, FILE_SHARE_READ, NULL,
-    	OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
-    	NULL);
-    	
-    if (myFile == (HANDLE) INVALID_HANDLE_VALUE)
-    {
-    	*pmErrorCode = GetLastError ();
-    }
-    
-    return myFile;
-} // MyFileOpenForRead
-
-
-/************************************************************************/
-/* MyFileOpenForWrite							*/
-/************************************************************************/
-static HANDLE	MyFileOpenForWrite (const char *pmPathName, int *pmErrorCode)
-{
-    HANDLE	myFile;
-    
-    myFile = CreateFile (pmPathName, GENERIC_WRITE, 0, NULL,
-    	OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (myFile == (HANDLE) INVALID_HANDLE_VALUE)
-    {
-    	*pmErrorCode = GetLastError ();
-    }
-    else
-    {
-    	if (!SetEndOfFile (myFile))
-    	{
-    	    CloseHandle (myFile);
-    	    *pmErrorCode = GetLastError ();
-    	}
-    }
-    
-    return myFile;
-} // MyFileOpenForWrite
-#endif
 
 
 /************************************************************************/
@@ -2856,890 +2668,6 @@ static void	MySetRunWindowTitles (void)
 	myPtr = myPtr -> next;
     }    		     
 } // MySetRunWindowTitles
-
-
-/************************************************************************/
-/* MyTuringFclose							*/
-/************************************************************************/
-static int MyTuringFclose (MIOFILE *pmMIOFile)
-{
-    MIOPRINTER  *myPrinter;
-    BOOL	myResult;
-    
-    INIT_LAST_ERROR;
-
-    stLastFileClosedWasFile = FALSE;
-    
-    if ((pmMIOFile == NULL) ||
-	((pmMIOFile -> filePtr == NULL) && (pmMIOFile -> windowPtr == NULL)))
-    {
-	// TW: Assertion Failure
-	// TW: Should never be closing an empty file ptr
-	return (EOF);
-    }
-
-    if (pmMIOFile -> filePtr != NULL)
-    {
-	switch (pmMIOFile -> fileType)
-	{
-	    case FILE_KIND_FILE:
-		myResult = MDIO_DiskFile_Close (pmMIOFile -> filePtr);
-		stLastFileClosedWasFile = TRUE;
-		break;
-	    case FILE_KIND_PRINTER:
-		myPrinter = (MIOPRINTER *) (pmMIOFile -> filePtr);
-		EdInt_SubmitPrintJob (NULL, myPrinter -> buffer, 
-	    	    		      myPrinter -> currentSize,
-				      myPrinter -> title);
-		// TW	    	    		      
-		break;	          
-	    case FILE_KIND_NET:
-		myResult = MIONet_Close (pmMIOFile -> filePtr);
-		stLastFileClosedWasFile = TRUE;
-		break;
-	    default:
-		// TW Assertion failure
-		break;
-	} // switch
-    } // if (pmMIOFile -> filePtr != NULL)
-    
-    if ((pmMIOFile -> windowPtr != NULL) && stCurrentlyExecutingAProgram)
-    {
-	switch (pmMIOFile -> windowType)
-	{
-	    case WINDOW_KIND_TEXT:
-	    case WINDOW_KIND_GRAPHICS:
-		MIOWin_GetInfo (pmMIOFile -> windowPtr) -> okayToClose = TRUE;
-	    	MIOWin_CloseWindow (pmMIOFile -> windowPtr);
-		break;	          
-	    default:
-		// TW Assertion failure
-		break;
-	} // switch
-    } // if (pmMIOFile -> windowPtr != NULL)
-
-    MyWipeMIOFile (pmMIOFile);
-    
-    if (myResult)
-    {
-    	return -1;
-    }
-    else
-    {
-    	return 0;
-    }
-} // MyTuringFclose
-
-
-/************************************************************************/
-/* MyTuringFflush							*/
-/************************************************************************/
-static int	MyTuringFflush (MIOFILE *pmMIOFile)
-{
-    if ((pmMIOFile -> filePtr != NULL) && 
-    	(pmMIOFile -> fileType == FILE_KIND_FILE))
-    {
-	return MDIO_DiskFile_Flush (pmMIOFile -> filePtr);
-    }
-    
-    return 0;	
-} // MyTuringFflush
-
-
-/************************************************************************/
-/* MyTuringFgetc							*/
-/*									*/
-/* Returns the character read or EOF (-1) if at EOF.			*/
-/************************************************************************/
-static int	MyTuringFgetc (MIOFILE *pmMIOFile)
-{
-    int			myResult;
-    BOOL		myEchoEOF, myEchoInputToFile;
-    WIND		myWindow;
-    MIOWinInfoPtr	myInfo;
-    
-    INIT_LAST_ERROR;
-
-    // Possible situations:
-    //	 mioStdin
-    //     selectedRunWindow != defaultRunWindow
-    //	     (1) read from selectedRunWindow, echo to selectedRunWindow
-    //     else
-    //	     (2) input from kbd, echo to screen
-    //	     (3) input from kbd, echo to screen and file
-    //	     (4) input from file, no echo
-    //       (5) input from file, echo to screen
-    //       (6) input from file, echo to file
-    //       (7) input from file, echo to screen and file
-    //   else
-    //     mio_fp->filePtr != NULL
-    //       (8) read from mio_fp->filePtr, no echo
-    //     else
-    //       (9) read from mio_fp->windowPtr, echo to windowPtr
-
-    // Are we reading from stdin
-    if (pmMIOFile == stMIOStdin)
-    {
-	// If we're running a test suite, then make certain that (1) input is
-	// coming from a file and (2) that we're trying to read from the default
-	// run window.
-	if (stIsTestSuiteProgram)
-	{
-	    if (MIO_selectedRunWindow != stDefaultRunWindow)
-	    {
-		// If we're in a Test Suite program, we cannot read from a 
-		// non-default run window.
-		ABORT_WITH_ERRNO (E_FSYS_TESTSUITE_MUST_USE_DEFAULT_WIN);
-	    }
-	    else if (stMIOStdinRedirect -> filePtr == NULL)
-	    {
-		// If we're in a Test Suite program, we must have found the
-		// input file (names "filename.in"), and opened it in 
-		// MIO_Init_Run.
-		ABORT_WITH_ERRNO (E_FSYS_TESTSUITE_NO_INPUT_FILE);
-	    }
-	}
-
-	// Handle (1)
-        if (MIO_selectedRunWindow != stDefaultRunWindow)
-	{
-	    switch (MIOWin_GetWindowType (MIO_selectedRunWindow))
-	    {
-	    	case WINDOW_TYPE_MIO_TEXT:
-	    	case WINDOW_TYPE_MIO_GRAPHICS:
-	    	    return MIOWin_GetCharacter (MIO_selectedRunWindow, NULL);
-	    	    break;
-		case WINDOW_TYPE_MIO_DIALOG:
-		    ABORT_WITH_ERRNO (E_FSYS_CANT_READ_WRITE_TO_DIALOG_WIN);
-	    	    break;
-		default:
-		    // TW Assertion failure here
-		    break;
-	    } // return	    	    
-	} // if (MIO_selectedRunWindow != stDefaultRunWindow)
-	    	    
-	// Handle (4)
-	if ((stMIOStdinRedirect -> filePtr != NULL) && !stEchoInputFromFile)
-	{
-	    return MDIO_DiskFile_Getc (stMIOStdinRedirect -> filePtr);
-	}
-    }
-    else
-    {
-	// Handle (8)
-	if (pmMIOFile -> filePtr != NULL)
-	{
-	    switch (pmMIOFile -> fileType)
-	    {
-	    	case FILE_KIND_FILE:
-		    return MDIO_DiskFile_Getc (pmMIOFile -> filePtr);
-	    	case FILE_KIND_NET:
-		    return MIONet_Getc (pmMIOFile -> filePtr);
-		default:
-		    // TW Assertion failure
-		    break;
-	    } // switch
-	}
-    }
-
-    // Handle (5), (6) and (7) 
-    if ((pmMIOFile == stMIOStdin) && (stMIOStdinRedirect -> filePtr != NULL))
-    {
-	myResult = MDIO_DiskFile_Getc (stMIOStdinRedirect -> filePtr);
-	if (stEchoInputFromFile)
-	{
-	    // 
-	    // While we only be reading a single character from the file
-	    // at a time, we need to echo the entire line of input until 
-	    // a newline and then not echo any input until we reach that
-	    // newline
-	    //
-	    if (stInputEchoReachedNewline)
-	    {
-		int	myFilePos, myChar;
-
-		myWindow = stMIOStdinEcho -> windowPtr;
-		if (myWindow != NULL) myInfo = MIOWin_GetInfo (myWindow);
-
-		if (myWindow != NULL) myInfo -> clearToEndOfLine = FALSE;
-		if (myResult == EOF) MyTuringFputs ("^Z\n", stMIOStdinEcho);
-		else MyTuringFputc (myResult, stMIOStdinEcho);
-		if (myWindow != NULL) myInfo -> clearToEndOfLine = TRUE;
-
-		myFilePos = MDIO_DiskFile_Tell (stMIOStdinRedirect -> filePtr);
-		myChar = myResult;
-		while ((myChar != '\n') && (myChar != EOF))
-		{
-		    myChar = MDIO_DiskFile_Getc (stMIOStdinRedirect -> filePtr);
-		    if (myWindow != NULL) myInfo -> clearToEndOfLine = FALSE;
-		    if (myChar == EOF) MyTuringFputs ("^Z\n", stMIOStdinEcho);
-		    else MyTuringFputc (myChar, stMIOStdinEcho);
-		    if (myWindow != NULL) myInfo -> clearToEndOfLine = TRUE;
-		}
-		MDIO_DiskFile_Seek (myFilePos, stMIOStdinRedirect -> filePtr, 
-				    SEEK_BEGIN);
-		stInputEchoReachedNewline = FALSE;
-	    }
-	}
-	if ((myResult == '\n') || (myResult == EOF)) 
-	{
-	    stInputEchoReachedNewline = TRUE;
-	}
-	return myResult;
-    }
-
-    /* Handle (2), (3) and (9) */
-    /*	     (2) input from kbd, echo to screen				*/
-    /*	     (3) input from kbd, echo to screen and file		*/
-    /*       (9) read from mio_fp->windowPtr, echo to windowPtr	*/
-
-    /* Set "w" to the window input will be read from and echoed to */
-    myEchoInputToFile = FALSE;
-    if (pmMIOFile == stMIOStdin)
-    {
-	myWindow = MIO_selectedRunWindow;
-	if (stMIOStdinEcho -> filePtr != NULL) myEchoInputToFile = TRUE;
-    }
-    else
-    {
-	myWindow = pmMIOFile -> windowPtr;
-    }
-    myInfo = MIOWin_GetInfo (myWindow);
-    
-    //
-    // Get the character from the window
-    //
-    switch (MIOWin_GetWindowType (myWindow))
-    {
-    	case WINDOW_TYPE_MIO_TEXT:
-    	case WINDOW_TYPE_MIO_GRAPHICS:
-	    myResult = MIOWin_GetCharacter (myWindow, &myEchoEOF);
-    	    break;
-	case WINDOW_TYPE_MIO_DIALOG:
-	    ABORT_WITH_ERRNO (E_FSYS_CANT_READ_WRITE_TO_DIALOG_WIN);
-	    break;
-	default:
-	    // TW Assertion failure here
-	    break;
-    } // return	    	    
-    
-
-    /* If an EOF is "on deck" ready to be sent */
-    if (myEchoEOF)
-    {
-	myInfo -> clearToEndOfLine = FALSE;
-	MyTuringFputs ("^Z\n", MyMakeMIOFILEFromWindow (myWindow));
-	myInfo -> clearToEndOfLine = TRUE;
-	if (myEchoInputToFile)
-	{
-	    MyTuringFputs ("^Z\n", MyMakeMIOFILEFromFile (
-	    					stMIOStdinEcho -> filePtr, 
-	    					stMIOStdinEcho -> fileType));
-	}
-	return EOF;
-    }
-
-    return myResult;
-} // MyTuringFgetc
-
-
-/************************************************************************/
-/* MyTuringFopen							*/
-/*									*/
-/* Opens a file/window/network connection/printer.			*/
-/************************************************************************/
-static MIOFILE	*MyTuringFopen (OOTstring pmFileName, OOTstring pmFileMode)
-{
-    MIOFILE	*myMIOFile;
-    int		myLength;
-    int		mySpecialFileType;
-    MIOPRINTER	*myPrinter;
-    char	myPathName [256];
-    char	*myWindowAttribs = myPathName;
-    char	*myPtr;
-    
-    stLastFileOpenedWasFile = FALSE;
-    
-    myMIOFile = MyCreateMIOFile ();
-    if (myMIOFile == NULL)
-    {
-	SET_ERRNO (E_FSYS_INSUFFICIENT_MEMORY);
-    	return NULL;
-    }
-    
-    myLength = strlen (pmFileName);
-
-    mySpecialFileType = MyGetSpecialFileType (pmFileName);
-
-    if (mySpecialFileType >= 0) 
-    {
-    	strcpy (myPathName, pmFileName);
-	myPathName [myLength - 1] = 0;	// Eliminate close bracket
-	myWindowAttribs += strlen (stSpecialFileTypes [mySpecialFileType]);
-    }
-    
-    // Handle the special case of a file named "printer"
-    myPtr = strrchr (pmFileName, '\\');
-    if ((myPtr != NULL) && (_stricmp (myPtr + 1, "printer") == 0))
-    {
-    	mySpecialFileType = SPECIAL_FILE_PRINTER;
-    	myWindowAttribs = "";
-    }
-
-    switch (mySpecialFileType)
-    {
-    	case SPECIAL_FILE_WINDOW:
-    	    EdInt_AddFailMessage ("Create window (Attr: %s)", myWindowAttribs);
-	    MIOWindow_SetDescription (myWindowAttribs);
-    	    myMIOFile -> windowPtr = MIOWin_CreateWindow (myWindowAttribs);
-    	    MIOWin_GetInfo (myMIOFile -> windowPtr) -> turingMIOFilePtr = 
-    	    							     myMIOFile;
-    	    if (MIOWin_IsTextWindow (myMIOFile -> windowPtr))
-    	    {
-    	    	myMIOFile -> windowType = WINDOW_KIND_TEXT;
-    	    }
-    	    else
-    	    {
-    	    	myMIOFile -> windowType = WINDOW_KIND_GRAPHICS;
-    	    }
-	    break;
-    	case SPECIAL_FILE_NET:
-    	    // Opening a network stream
-	    // Specify if its binary
-	    if (strchr (pmFileMode, 'b') != NULL)
-	    {
-		strcat (myPathName, ":b");
-	    }
-    	    EdInt_AddFailMessage ("Create net (Attr: %s)", myWindowAttribs);
-	    myMIOFile -> filePtr = MIONet_Open (myWindowAttribs);
-	    myMIOFile -> fileType = FILE_KIND_NET;
-	    break;
-
-	case SPECIAL_FILE_PRINTER:
-	    // Opening a printer output stream
-    	    EdInt_AddFailMessage ("Create printer (Attr: %s)", myWindowAttribs);
-    	    myPrinter = MyCreateMIOPrinter (myWindowAttribs);
-    	    if (myPrinter == NULL)
-    	    {
-    	    	// TW Set not enough memory to open printer
-    	    }
-	    myMIOFile -> filePtr = (void *) myPrinter;
-	    myMIOFile -> fileType = FILE_KIND_PRINTER;
-	    break;
-
-    	default:
-	    // Opening a file
-	    if (!MIOFile_ConvertPath (pmFileName, NULL, myPathName, 
-				      NO_TRAILING_SLASH))
-	    {
-		// No file was opened
-	    	free (myMIOFile);
-		return NULL;
-	    }
-	    
-	    // Used to trace allocated files in the IDE
-	    strcpy (stLastFileDescription, myPathName);
-	    stLastFileOpenedWasFile = TRUE;
-	    
-	    myMIOFile -> filePtr = MDIO_DiskFile_Open (myPathName, pmFileMode);
-	    myMIOFile -> fileType = FILE_KIND_FILE;
-	    break;
-    } // switch
-
-    if ((myMIOFile -> filePtr == NULL) && (myMIOFile -> windowPtr == NULL))
-    {
-	// No file was opened
-    	free (myMIOFile);
-	return NULL;
-    }
-    else
-    {
-    	return myMIOFile;
-    }
-} // MyTuringFopen
-
-
-/************************************************************************/
-/* MyTuringFputc							*/
-/*									*/
-/* Returns the character written or EOF (-1) if there was an error.	*/
-/************************************************************************/
-static int	MyTuringFputc (OOTint pmChar, MIOFILE *pmMIOFile)
-{
-    WIND	myWindow = NULL;
-    int		myWindowType = 0;
-    MIOPRINTER	*myPrinter;
-    static char	myString [2];
-    
-    // Is stdout to be redirected
-    if (pmMIOFile == stMIOStdout)
-    {
-    	// Only redirect output going to stdout if it was going to go to the
-    	// default window.
-        if (MIO_selectedRunWindow == stDefaultRunWindow)
-	{
-	    return (MyTuringFputc (pmChar, stMIOStdoutRedirect));
-	}
-	else 
-	{
-	    myWindow = MIO_selectedRunWindow;
-	    myWindowType = 0;
-	}
-    }
-    else
-    {
-    	myWindow = pmMIOFile -> windowPtr;
-    	myWindowType = pmMIOFile -> windowType;
-    }
-
-    // At this point, we are going to send output to pmMIOFile -> filePtr *and*
-    // myWindow.  If either is NULL, nothing gets sent to them.  In reality,
-    // the only time both are non-NULL is the output is going to stdout and
-    // the user chose to redirect output to both a file and a window.
-    
-    //
-    // Write to the file, if there is one
-    //
-    if (pmMIOFile -> filePtr)
-    {
-    	switch (pmMIOFile -> fileType)
-    	{
-    	    case FILE_KIND_FILE:
-    	    	if (MDIO_DiskFile_Putc (pmChar, pmMIOFile -> filePtr) == EOF)
-    	    	{
-    	    	    return EOF;
-    	    	}
-    	        break;
-    	    case FILE_KIND_PRINTER:
-    	    	// filePtr is a MIOPrint
-    	    	myPrinter = (MIOPRINTER *) (pmMIOFile -> filePtr);
-    	    	if (myPrinter -> currentSize + 1 >= myPrinter -> maxSize)
-    	    	{
-    	    	    int myNewMaxSize = myPrinter -> maxSize + 2000;
-    	    	    char *myBuffer = realloc (myPrinter -> buffer,
-    	    	    			      myNewMaxSize);
-		    if (myBuffer == NULL)
-		    {
-		        // TW Error handling here
-		        return EOF;
-		    }
-		    myPrinter -> buffer = myBuffer;
-		    myPrinter -> maxSize = myNewMaxSize;
-		}
-		myPrinter -> buffer [myPrinter -> currentSize++] = 
-								(char) pmChar;
-		myPrinter -> buffer [myPrinter -> currentSize] = 0;
-    	        break;
-    	    case FILE_KIND_NET:
-		return MIONet_Putc ((char) pmChar, pmMIOFile -> filePtr);
-	} // switch
-    } // if (pmMIOFile -> filePtr)
-    
-    //
-    // Write to the window, if there is one
-    //
-    if (myWindow == NULL)
-    {
-    	return pmChar;
-    } 
-    
-    myString [0] = (char) pmChar;
-    myString [1] = 0;
-    MIOWin_OutputText (myWindow, myString);
-    
-    return pmChar;
-} // MyTuringFputc
-
-
-/************************************************************************/
-/* MyTuringFputs							*/
-/************************************************************************/
-static int	MyTuringFputs (OOTstring pmString, MIOFILE *pmMIOFile)
-{
-    WIND	myWindow = NULL;
-    int		myWindowType = 0;
-    DWORD	myLen;
-    MIOPRINTER	*myPrinter;
-    
-    // If null string, then return immediately
-    if (pmString [0] == 0)
-    {
-	return 0;
-    }
-
-    // Is stdout to be redirected
-    if (pmMIOFile == stMIOStdout)
-    {
-    	// Only redirect output going to stdout if it was going to go to the
-    	// default window.
-        if (MIO_selectedRunWindow == stDefaultRunWindow)
-	{
-	    return (MyTuringFputs (pmString, stMIOStdoutRedirect));
-	}
-	else 
-	{
-	    myWindow = MIO_selectedRunWindow;
-	    myWindowType = 0;
-	}
-    }
-    else
-    {
-    	myWindow = pmMIOFile -> windowPtr;
-    	myWindowType = pmMIOFile -> windowType;
-    }
-
-    // At this point, we are going to send output to pmMIOFile -> filePtr *and*
-    // myWindow.  If either is NULL, nothing gets sent to them.  In reality,
-    // the only time both are non-NULL is the output is going to stdout and
-    // the user chose to redirect output to both a file and a window.
-    
-    //
-    // Write to the file, if there is one
-    //
-    if (pmMIOFile -> filePtr)
-    {
-    	switch (pmMIOFile -> fileType)
-    	{
-    	    case FILE_KIND_FILE:
-    	    	if (MDIO_DiskFile_Puts (pmString, pmMIOFile -> filePtr) == EOF)
-    	    	{
-    	    	    return EOF;
-    	    	}
-    	        break;
-    	    case FILE_KIND_PRINTER:
-    	    	// filePtr is a MIOPrint
-    	    	myPrinter = (MIOPRINTER *) (pmMIOFile -> filePtr);
-    	    	myLen = strlen (pmString);
-    	    	if (myPrinter -> currentSize + myLen >= myPrinter -> maxSize)
-    	    	{
-    	    	    int myNewMaxSize = myPrinter -> currentSize + myLen + 2000;
-    	    	    char *myBuffer = realloc (myPrinter -> buffer,
-    	    	    			      myNewMaxSize);
-		    if (myBuffer == NULL)
-		    {
-		        // TW Error handling here
-		        return EOF;
-		    }
-		    myPrinter -> buffer = myBuffer;
-		    myPrinter -> maxSize = myNewMaxSize;
-		}
-		strcpy (&myPrinter -> buffer [myPrinter -> currentSize], 
-			pmString);
-		myPrinter -> currentSize += myLen;			
-		myPrinter -> buffer [myPrinter -> currentSize] = 0;
-    	        break;
-    	    case FILE_KIND_NET:
-		return MIONet_Puts (pmString, pmMIOFile -> filePtr);
-	} // switch
-    } // if (pmMIOFile -> filePtr)
-    
-    //
-    // Write to the window, if there is one
-    //
-    if (myWindow == NULL)
-    {
-    	return 0;
-    } 
-    
-    MIOWin_OutputText (myWindow, pmString);
-    
-    return 0;
-} // MyTuringFputs
-
-
-/************************************************************************/
-/* MyTuringFread							*/
-/************************************************************************/
-static int	MyTuringFread (void *pmBuffer, OOTint pmSize, 
-			       OOTint pmNum, MIOFILE *pmMIOFile)
-{
-    INIT_LAST_ERROR;
-
-    // Possible situations:
-    //	 mioStdin
-    //	   ERROR!
-    //   else
-    //     mio_fp->filePtr != NULL
-    //       (8) read from mio_fp->filePtr, no echo
-    //     else	
-    //       ERROR!
-
-    // Are we reading from stdin
-    if (pmMIOFile == stMIOStdin)
-    {
-	ABORT_WITH_ERRNO (E_ATTEMPT_TO_BIN_READ_FROM_KBD);
-    }
-    else
-    {
-	// Handle (8)
-	if (pmMIOFile -> filePtr != NULL)
-	{
-	    switch (pmMIOFile -> fileType)
-	    {
-	    	case FILE_KIND_FILE:
-		    return MDIO_DiskFile_Read (pmBuffer, pmSize * pmNum, 
-					       pmMIOFile -> filePtr);
-	    	case FILE_KIND_NET:
-		    return MIONet_Read (pmBuffer, pmSize * pmNum, 
-					pmMIOFile -> filePtr);
-		default:
-		    // TW Assertion failure
-		    break;
-	    } // switch
-	}
-    }
-
-    ABORT_WITH_ERRNO (E_ATTEMPT_TO_BIN_READ_FROM_KBD);
-    return 0;
-} // MyTuringFread
-
-
-/************************************************************************/
-/* MyTuringFreset							*/
-/************************************************************************/
-static void	MyTuringFreset (MIOFILE *pmMIOFile)
-{
-    // Because we're never actually reading from stdin, we never need to
-    // reset it.
-} // MyTuringFreset
-
-
-/************************************************************************/
-/* MyTuringFseek							*/
-/*									*/
-/* Perform a seek on a file.						*/
-/************************************************************************/
-static int	MyTuringFseek (MIOFILE *pmMIOFile, OOTint pmOffset, 
-			       OOTint pmWhence)
-{
-    INIT_LAST_ERROR;
-
-    if (pmMIOFile -> filePtr != NULL)
-    {
-	switch (pmMIOFile -> fileType)
-	{
-	    case FILE_KIND_FILE:
-	    	// TW Assert pmWhence == 0
-	    	MDIO_DiskFile_Seek (pmOffset, pmMIOFile -> filePtr, pmWhence);
-		break;
-	    case FILE_KIND_PRINTER:
-		// TW Error - you can't seek on a printer
-		break;	          
-	    case FILE_KIND_NET:
-		// TW Error - you can't seek on a net
-		break;
-	    default:
-		// TW Assertion failure
-		break;
-	} // switch
-    } // if (pmMIOFile -> filePtr != NULL)
-
-    if (pmMIOFile -> windowPtr != NULL)
-    {
-        // TW Error - can't seek on a window
-    } // if (pmMIOFile -> windowPtr != NULL)
-
-    return 0;
-} // MyTuringFseek
-
-
-/************************************************************************/
-/* MyTuringFtell							*/
-/*									*/
-/* Return the current position in a file.				*/
-/************************************************************************/
-static long	MyTuringFtell (MIOFILE *pmMIOFile)
-{
-    INIT_LAST_ERROR;
-
-    if (pmMIOFile -> filePtr != NULL) 
-    {
-	switch (pmMIOFile -> fileType)
-	{
-	    case FILE_KIND_FILE:
-	    	return MDIO_DiskFile_Tell (pmMIOFile -> filePtr);
-		break;
-	    case FILE_KIND_PRINTER:
-		// TW Error - you can't seek on a printer
-		break;	          
-	    case FILE_KIND_NET:
-		// TW Error - you can't seek on a net
-		break;
-	    default:
-		// TW Assertion failure
-		break;
-	} // switch
-    } // if (pmMIOFile -> filePtr != NULL)
-
-    if (pmMIOFile -> windowPtr != NULL)
-    {
-        // TW Error - can't seek on a window
-    } // if (pmMIOFile -> windowPtr != NULL)
-    
-    return -1;
-} // MyTuringFtell
-
-
-/************************************************************************/
-/* MyTuringFwrite							*/
-/************************************************************************/
-static int	MyTuringFwrite (void *pmBuffer, OOTint pmSize, 
-			        OOTint pmNum, MIOFILE *pmMIOFile)
-{
-    DWORD	myLen;
-    MIOPRINTER	*myPrinter;
-    
-    // If null string, then return immediately
-    if ((pmSize * pmNum) == 0)
-    {
-	return 0;
-    }
-
-    // Is stdout to be redirected
-    if (pmMIOFile == stMIOStdout)
-    {
-	ABORT_WITH_ERRNO (E_ATTEMPT_TO_BIN_WRITE_TO_WIN);
-    }
-
-    // At this point, we are going to send output to pmMIOFile -> filePtr *and*
-    // myWindow.  If either is NULL, nothing gets sent to them.  In reality,
-    // the only time both are non-NULL is the output is going to stdout and
-    // the user chose to redirect output to both a file and a window.
-    
-    //
-    // Write to the file, if there is one
-    //
-    if (pmMIOFile -> filePtr)
-    {
-    	switch (pmMIOFile -> fileType)
-    	{
-    	    case FILE_KIND_FILE:
-    	    	return MDIO_DiskFile_Write (pmBuffer, pmSize * pmNum, 
-				            pmMIOFile -> filePtr);
-    	    case FILE_KIND_PRINTER:
-    	    	// filePtr is a MIOPrint
-    	    	myPrinter = (MIOPRINTER *) (pmMIOFile -> filePtr);
-    	    	myLen = pmSize * pmNum;
-    	    	if (myPrinter -> currentSize + myLen >= myPrinter -> maxSize)
-    	    	{
-    	    	    int myNewMaxSize = myPrinter -> currentSize + myLen + 2000;
-    	    	    char *myBuffer = realloc (myPrinter -> buffer,
-    	    	    			      myNewMaxSize);
-		    if (myBuffer == NULL)
-		    {
-		        // TW Error handling here
-		        return EOF;
-		    }
-		    myPrinter -> buffer = myBuffer;
-		    myPrinter -> maxSize = myNewMaxSize;
-		}
-		memcpy (&myPrinter -> buffer [myPrinter -> currentSize], 
-			pmBuffer, myLen);
-		myPrinter -> currentSize += myLen;			
-		myPrinter -> buffer [myPrinter -> currentSize] = 0;
-		return myLen;
-    	    case FILE_KIND_NET:
-		return MIONet_Write (pmBuffer, pmSize * pmNum, 
-				     pmMIOFile -> filePtr);
-	} // switch
-    } // if (pmMIOFile -> filePtr)
-    
-    ABORT_WITH_ERRNO (E_ATTEMPT_TO_BIN_WRITE_TO_WIN);
-    
-    return 0;
-} // MyTuringFread
-
-
-/************************************************************************/
-/* MyTuringUngetc							*/
-/*									*/
-/* Put a character in the unget buffer.					*/
-/************************************************************************/
-static int	MyTuringUngetc (OOTint pmChar, MIOFILE *pmMIOFile)
-{
-    INIT_LAST_ERROR;
-
-    // Possible situations:						*/
-    //	 mioStdin							*/
-    //     selectedRunWindow != defaultRunWindow			*/
-    //	     (1) read from selectedRunWindow, echo to selectedRunWindow	*/
-    //     else								*/
-    //	     (2) input from kbd, echo to screen				*/
-    //	     (3) input from kbd, echo to screen and file		*/
-    //	     (4) input from file, no echo				*/
-    //       (5) input from file, echo to screen			*/
-    //       (6) input from file, echo to file				*/
-    //       (7) input from file, echo to screen and file		*/
-    //   else								*/
-    //     mio_fp->filePtr != NULL					*/
-    //       (8) read from mio_fp->filePtr, no echo			*/
-    //     else								*/
-    //       (9) read from mio_fp->windowPtr, echo to windowPtr		*/
-
-    if (pmMIOFile == stMIOStdin)
-    {
-	// Handle (4), (5), (6) and (7)
-        if ((MIO_selectedRunWindow == stDefaultRunWindow) &&
-            (stMIOStdinRedirect -> filePtr != NULL))
-	{
-	    MyTuringUngetc (pmChar, stMIOStdinRedirect);
-	}
-
-	// Handle (1), (2), (3)	
-	switch (MIOWin_GetWindowType (MIO_selectedRunWindow))
-	{
-	    case WINDOW_TYPE_MIO_TEXT:
-	    case WINDOW_TYPE_MIO_GRAPHICS:
-	    	MIOWin_UngetCharacter (pmChar, MIO_selectedRunWindow);
-	    	break;
-	    case WINDOW_TYPE_MIO_DIALOG:
-		ABORT_WITH_ERRNO (E_FSYS_CANT_READ_WRITE_TO_DIALOG_WIN);
-		break;
-	    default:
-		// TW Assertion failure here
-		break;
-	} // switch
-    }
-    else
-    {
-	// Handle (8)
-	if (pmMIOFile -> filePtr != NULL)
-	{
-	    switch (pmMIOFile -> fileType)
-	    {
-	    	case FILE_KIND_FILE:
-	            MDIO_DiskFile_Ungetc (pmChar, pmMIOFile -> filePtr);
-	            break;
-	    	case FILE_KIND_NET:
-		    MIONet_Ungetc (pmChar, pmMIOFile -> filePtr);
-		    break;
-		default:
-		    // TW Assertion failure
-		    break;
-	    } // switch
-	}
-	else
-	{
-	    // Handle (9)
-	    switch (MIOWin_GetWindowType (MIO_selectedRunWindow))
-	    {
-	    	case WINDOW_TYPE_MIO_TEXT:
-	    	case WINDOW_TYPE_MIO_GRAPHICS:
-	    	    MIOWin_UngetCharacter (pmChar, MIO_selectedRunWindow);
-	    	    break;
-		case WINDOW_TYPE_MIO_DIALOG:
-		    ABORT_WITH_ERRNO (E_FSYS_CANT_READ_WRITE_TO_DIALOG_WIN);
-	    	    break;
-	    	default:
-		    // TW Assertion failure here
-		    break;
-	    } // switch
-	}
-    }
-    
-    return (pmChar);
-} // MyTuringUngetc
-
 
 /************************************************************************/
 /* MyWipeMIOFile							*/

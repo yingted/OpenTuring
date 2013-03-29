@@ -404,7 +404,7 @@ void	MIOFile_Init (int pmOS, const char *pmOOTDir, const char *pmHomeDir)
     int		myPathType;
     
     stOS = pmOS;
-    
+#if 0    
     if (!MyConvertToTuringPath (pmOOTDir, stOOTDir, &myPathType))
     {
     	EdInt_HaltEnvironment (IDS_MIO_FILEFAIL_1, __FILE__, __LINE__, 0, 101,
@@ -434,6 +434,7 @@ void	MIOFile_Init (int pmOS, const char *pmOOTDir, const char *pmHomeDir)
     {
         strcat (stHomeDir, PATH_SEP_STR);
     }
+#endif
 } // MIOFile_Init
 
 
@@ -982,6 +983,7 @@ static BOOL	MyConvertToTuringPath (const char *pmMDPathName,
     mySrcPtr = myPath;
     myDestPtr = pmTuringPath; 
     // Okay, let's determine what type of file we're dealing with here.
+    return TRUE;
     // It can start with 
     // (1)  "elementEOS", "element/"
     // (2)  "%ootEOS", "%homeEOS", "%oot/", "%home/" 

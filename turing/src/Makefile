@@ -15,7 +15,8 @@ EXES                  = src.exe
 
 ### Common settings
 
-CEXTRA                = -mno-cygwin
+#CEXTRA                = -mno-cygwin
+CEXTRA                =
 CXXEXTRA              = -mno-cygwin
 RCEXTRA               =
 DEFINES               = -DTPROLOG
@@ -24,6 +25,7 @@ DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
+OPTIONS = -I/usr/include/wine/windows -I/usr/include/wine/msvcrt
 
 
 ### src.exe sources and settings
@@ -182,7 +184,8 @@ RC_SRCS               = $(src_exe_RC_SRCS)
 
 ### Tools
 
-CC = winegcc
+#CC = winegcc
+CC = gcc
 CXX = wineg++
 RC = wrc
 AR = ar
@@ -203,6 +206,8 @@ $(SUBDIRS): dummy
 
 .SUFFIXES: .cpp .cxx .rc .res
 DEFINCL = $(INCLUDE_PATH) $(DEFINES) $(OPTIONS)
+mio.o: mio.c
+	$(CC) -c $(CFLAGS) $(CEXTRA) -I. -I../../ready/src -DTPROLOG -I/usr/include/wine/windows -o $@ $<
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(CEXTRA) $(DEFINCL) -o $@ $<
@@ -239,9 +244,10 @@ $(src_exe_MODULE): $(src_exe_OBJS)
 
 
 tprolog.bin:
-	#gcc -I/usr/include/wine/windows -o tprolog.bin tprolog.c -w -I../../ready/src ../../ready/src/ed{file,text,fail}.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o /usr/lib/wine/{shell32,msvcrt40,msvcrt,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
-	gcc -g3 -I/usr/include/wine/windows -o tprolog.bin tprolog.c -w -I../../ready/src ../../ready/src/edtext.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,edint,hashmap}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wrapper,config,crypto,text,view}.o /usr/lib/wine/{shell32,msvcrt40,msvcrt,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
+	#gcc $(CEXTRA) $(DEFINCL) -I/usr/include/wine/windows -o tprolog.bin tprolog.c -w -I../../ready/src ../../ready/src/ed{file,text,fail}.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o /usr/lib/wine/{shell32,msvcrt40,msvcrt,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
+	$(CC) $(CFLAGS) -o tprolog.bin tprolog.c -w -I../../ready/src -I/usr/include/wine/windows ../../ready/src/edtext.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string}.o ../tlib/{TL,tl}*.o {lookup,tleabt,edint,hashmap}.o mio{,window,time,error,dir,hashmap,lexer,sys,wrapper,config,crypto,text,view,file}.o mdio.o /usr/lib/wine/{shell32,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
 tprolog.exe:
-	winegcc -o $@ tprolog.c -w -I../../ready/src ../../ready/src/ed{file,text,fail}.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o -lshell32 -lmsvcrt40 -lmsvcrt libungif/liblibungif.a -lversion -Wl,--unresolved-symbols=ignore-in-object-files
+	#winegcc $(CFLAGS) $(CEXTRA) $(DEFINCL) -o $@ tprolog.c -w -I../../ready/src ../../ready/src/ed{file,text,fail}.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o -lshell32 -lmsvcrt40 -lmsvcrt libungif/liblibungif.a -lversion -Wl,--unresolved-symbols=ignore-in-object-files
+	$(CC) $(CFLAGS) $(CEXTRA) $(DEFINCL) -o $@ tprolog.c -w -I../../ready/src ../../ready/src/edtext.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o -lshell32 -lmsvcrt40 -lmsvcrt libungif/liblibungif.a -lversion -Wl,--unresolved-symbols=ignore-in-object-files
 tprolog-full.exe:
-	winegcc -o $@ tprolog.c -w -I../../ready/src ../../ready/src/ed{file,gui,print,text,fail}.o tprolog/*.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,font,hashmap,lexer,mouse,music,net,rgb,sprite,sys,windlg,wingraph,wintext,wrapper,config,crypto,dlg,draw,gui,joy,pc,text,view,glgraph,pic}.o mdio{,time,win,pic,util,wingraph,wintext,wintop,dir,file,font,music,net,rgb,sprite,sys,windlg,config,dlg,draw,joy,pc,picgif}.o -lgdiplus -lgdi32 -lwininet -lshell32 -lwinmm -lmsvcrt40 -lmsvcrt -lopengl32 libungif/liblibungif.a -lversion #-Wl,--unresolved-symbols=ignore-in-object-files
+	$(CC) $(CFLAGS) $(CEXTRA) $(DEFINCL) -o $@ tprolog.c -w -I../../ready/src ../../ready/src/ed{file,gui,print,text,fail}.o tprolog/*.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,font,hashmap,lexer,mouse,music,net,rgb,sprite,sys,windlg,wingraph,wintext,wrapper,config,crypto,dlg,draw,gui,joy,pc,text,view,glgraph,pic}.o mdio{,time,win,pic,util,wingraph,wintext,wintop,dir,file,font,music,net,rgb,sprite,sys,windlg,config,dlg,draw,joy,pc,picgif}.o -lgdiplus -lgdi32 -lwininet -lshell32 -lwinmm -lmsvcrt40 -lmsvcrt -lopengl32 libungif/liblibungif.a -lversion #-Wl,--unresolved-symbols=ignore-in-object-files

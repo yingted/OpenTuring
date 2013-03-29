@@ -13,7 +13,8 @@ EXES                  = jpeg_6b.exe
 
 ### Common settings
 
-CEXTRA                = -mno-cygwin
+#CEXTRA                = -mno-cygwin
+CEXTRA                =
 CXXEXTRA              = -mno-cygwin
 RCEXTRA               =
 DEFINES               =
@@ -22,6 +23,7 @@ DLL_PATH              =
 DLL_IMPORTS           =
 LIBRARY_PATH          =
 LIBRARIES             =
+OPTIONS = -I/usr/include/wine/windows -I/usr/include/wine/msvcrt
 
 
 ### jpeg_6b.exe sources and settings
@@ -128,7 +130,8 @@ RC_SRCS               = $(jpeg_6b_exe_RC_SRCS)
 
 ### Tools
 
-CC = winegcc
+#CC = winegcc
+CC = gcc
 CXX = wineg++
 RC = wrc
 AR = ar

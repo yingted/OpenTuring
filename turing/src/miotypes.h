@@ -70,7 +70,8 @@ typedef void		*REGION;
 typedef void		*TEXT;
 typedef void		*TW_OOT_EVENT;
 typedef void		*WIND;
-#define WIND HWND
+//#define WIND HWND
+#define HWND WIND
 
 typedef struct 
 {

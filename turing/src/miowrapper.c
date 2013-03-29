@@ -1017,7 +1017,7 @@ void MIO_joy_read (OOTaddr *sp)
 
     MyExecutorScan (sp, "IR", &jnum, &jp);
 
-    MIOJoy_Read (jnum, jp);
+    //MIOJoy_Read (jnum, jp);
 } // MIO_joy_read
 
 void MIO_joy_caps (OOTaddr *sp)
@@ -1027,7 +1027,7 @@ void MIO_joy_caps (OOTaddr *sp)
 
     MyExecutorScan (sp, "IR", &jnum, &jc);
 
-    MIOJoy_Caps (jnum, jc);
+    //MIOJoy_Caps (jnum, jc);
 } // MIO_joy_caps
 
 

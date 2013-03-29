@@ -241,7 +241,7 @@ void CurrentDirectory (char pmDirectory [256])
 {
     DWORD	myLen;
 
-    myLen = GetCurrentDirectory (254, pmDirectory);
+    myLen = getcwd (pmDirectory,256);
     if ((myLen == 0) || (myLen > 254))
     {
     	pmDirectory [0] = 0;
@@ -298,7 +298,7 @@ void IncludeDirectory (char pmDirectory [256])
     myLen = GetEnvironmentVariable ("TURINGDIR", pmDirectory, 254);
     if ((myLen == 0) || (myLen > 254))
     {
-    	myLen = GetCurrentDirectory (255, pmDirectory);
+    	myLen = getcwd (pmDirectory,255);
     	if ((myLen == 0) || (myLen > 255))
     	{
     	    pmDirectory [0] = 0;

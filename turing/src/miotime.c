@@ -164,7 +164,7 @@ OOTint	MIOTime_DateSec (OOTstring pmDateTimeStr)
 /************************************************************************/
 OOTint	MIOTime_Elapsed (void)
 {
-    return MDIOTime_GetTicks () - stStartTick;
+    return MIOTime_GetTicks () - stStartTick;
 } // MIOTime_Elapsed
 
 
@@ -173,7 +173,7 @@ OOTint	MIOTime_Elapsed (void)
 /************************************************************************/
 OOTint	MIOTime_ElapsedCPU (void)
 {
-    return MDIOTime_GetTicks () - stStartTick;
+    return MIOTime_GetTicks () - stStartTick;
 } // MIOTime_ElapsedCPU
 
 
@@ -279,7 +279,7 @@ void	MIOTime_SecStr (OOTstring pmString, OOTint pmOOTTime,
 /************************************************************************/
 void	MIOTime_Init (void)
 {
-    MDIOTime_Init ();
+    //MDIOTime_Init ();
 } // MIOTime_Reset
 
 
@@ -288,7 +288,7 @@ void	MIOTime_Init (void)
 /************************************************************************/
 void	MIOTime_Init_Run (void)
 {
-    stStartTick = MDIOTime_GetTicks ();
+    stStartTick = MIOTime_GetTicks ();
 } // MIOTime_Init_Run
 
 
@@ -297,7 +297,7 @@ void	MIOTime_Init_Run (void)
 /************************************************************************/
 int	MIOTime_GetTicks (void)
 {
-    return MDIOTime_GetTicks ();
+    return clock()/1000;
 } // MIOTime_GetTicks
 
 
