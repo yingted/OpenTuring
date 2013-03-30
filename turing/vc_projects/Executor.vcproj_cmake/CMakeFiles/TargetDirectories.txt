@@ -1,2 +1,0 @@
-/home/ted/box/OpenTuring/turing/vc projects/Executor.vcproj_cmake/CMakeFiles/update_cmakelists_ALL.dir
-/home/ted/box/OpenTuring/turing/vc projects/Executor.vcproj_cmake/CMakeFiles/update_cmakelists_Executor.dir

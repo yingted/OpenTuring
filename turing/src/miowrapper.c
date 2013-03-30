@@ -2483,17 +2483,17 @@ void MIO_view_set (OOTaddr *sp)
     OOTstring viewSetStr;
 
     MyExecutorScan (sp, "R", &viewSetStr);
-    MIOWindow_SetScreen (CURRENTLY_SELECTED_WINDOW, viewSetStr);
+    //MIOWindow_SetScreen (CURRENTLY_SELECTED_WINDOW, viewSetStr);
 } // MIO_view_set
 
 void MIO_view_maxx (OOTaddr *sp)
 {
-    RESULT_OOT_INT(sp, MIOView_GetMaxx ());
+    RESULT_OOT_INT(sp, 639);
 } // MIO_view_maxx
 
 void MIO_view_maxy (OOTaddr *sp)
 {
-    RESULT_OOT_INT(sp, MIOView_GetMaxy ());
+    RESULT_OOT_INT(sp, 374);
 } // MIO_view_maxy
 
 void MIO_view_whatdotcolour (OOTaddr *sp)

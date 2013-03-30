@@ -5,6 +5,7 @@
 #define __TPLUSC__
 
 #include <setjmp.h>
+#include <string.h>
 
 /*
 ** Predefined Types
@@ -345,9 +346,13 @@ double	fabs();	/* from C library */
 				struct TLFTAB *TL_FILE = TL_TLCPD->fileTable
 #define	TLRESTORELF()		TL_TLCPD->lineAndFile = TL_LINE; \
 				TL_TLCPD->fileTable = TL_FILE
+#ifndef TLSETL
 #define	TLSETL(lf)		TL_TLCPD->lineAndFile = lf
+#endif
 #define	TLSETF()		TL_TLCPD->fileTable = (struct TLFTAB *) &TLFTAB
+#ifndef TLINCL
 #define	TLINCL()		TL_TLCPD->lineAndFile++
+#endif
 #define	TLSTKCHKSLF(lf)		long TL_LINE; \
 				struct TLFTAB *TL_FILE; \
 				if (((TLaddressint) &TL_FILE) < \

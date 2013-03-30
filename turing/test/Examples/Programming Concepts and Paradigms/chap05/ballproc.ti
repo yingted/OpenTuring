@@ -1,5 +1,0 @@
-% File "ballproc.ti".
-% A separate file for the ball procedure
-procedure ball (xc, yc, radius, clr : int)
-    Draw.FillOval (xc, yc, radius, radius, clr)
-end ball

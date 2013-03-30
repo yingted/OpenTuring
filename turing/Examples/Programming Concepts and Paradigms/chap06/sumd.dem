@@ -1,3 +1,0 @@
-% File "sumd.dem".  Demonstrate the function sum.
-include "sumint.ti"
-put sum (3)

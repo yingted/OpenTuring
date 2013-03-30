@@ -1,3 +1,6 @@
+#tprolog for linux
+Okay, so it works. If you have time, please stub out `turing/src/miowrapper.c` et al.
+Original Readme.md:
 #Open Turing 1.0
 ####Download: https://github.com/downloads/Open-Turing-Project/OpenTuring/package.zip
 #####Current lead maintainer: Tristan Hume
