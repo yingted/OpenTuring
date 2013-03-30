@@ -266,19 +266,6 @@ static char	*stSysExitString;
 /********************/
 /* Static variables */
 /********************/
-// These three files are never actually modified.  Instead, they act as
-// place holders from stdin, stdout and stderr
-static MIOFILE		*stMIOStdin, *stMIOStdout, *stMIOStderr;//first 2 do nothing
-// This represents the window or file that stdin is to be read from
-static MIOFILE		*stMIOStdinRedirect;
-// This represents the window and/or file that stdout is to be sent to
-static MIOFILE		*stMIOStdoutRedirect;
-// This represent the window and/or file that echoed input is to be sent to
-static MIOFILE		*stMIOStdinEcho;
-// This represents the default run window
-static const void		*stDefaultRunWindow = NULL;
-// This is the list of run windows
-static WindowListPtr	stRunWindowListHead = NULL;
 // Is input from a file being echoed
 static BOOL		stEchoInputFromFile;
 // If echoing input, has the echo reached a newline yet.  This is used 
@@ -363,16 +350,6 @@ void	MIO_Initialize (INSTANCE pmApplicationInstance, int pmOS,
     TL_TLI_TLIFRE = fread;
     TL_TLI_TLIFWR = fwrite;
     TL_TLI_TLIFZ  = rewind;
-    
-    //
-    // Set up standard input, standard output and standard error    
-    //
-    stMIOStdin = MyCreateMIOFile ();
-    stMIOStdout = MyCreateMIOFile ();
-    stMIOStderr = MyCreateMIOFile ();
-    stMIOStdinRedirect = MyCreateMIOFile ();
-    stMIOStdoutRedirect = MyCreateMIOFile ();
-    stMIOStdinEcho = MyCreateMIOFile ();
     
     // We are not yet executing a program
     stCurrentlyExecutingAProgram = FALSE;
@@ -503,253 +480,13 @@ BOOL	MIO_Init_Run (const char *pmProgramName,
     MIO_paused = FALSE;
     MIO_finished = FALSE;
 
-#ifdef NOT_YET_NEEDED
-    //
-    // Clear the open streams
-    //
-    for (cnt = 0 ; cnt < MAX_STREAMS ; cnt++)
-    {
-    	stStreams [cnt].id = ID_OPEN;
-    }
-    stStreamCounter = 0;
-#endif // NOT_YET_NEEDED
-    
-    //    	
     // Initialize everything
-    //
-#if 0
-    MIOWin_InitRun ();
-    
-    //
-    // Initialize the preferences for the windows
-    //
-    myMIOWindowProperties.myProperties.fullScreen = pmFullScreen;
-    myMIOWindowProperties.myProperties.textRows = pmWindowRows;
-    myMIOWindowProperties.myProperties.textCols = pmWindowColumns;
-    myMIOWindowProperties.myProperties.textFontSize = pmFontSize;
-    strcpy (myMIOWindowProperties.myProperties.textFontName, pmFontName);
-    myMIOWindowProperties.myProperties.caretWidth = 2;
-    // TW Change this when you can change the actual selection colour
-    myMIOWindowProperties.myProperties.desiredSelectionColour = pmSelectionColour;
-    myMIOWindowProperties.myProperties.logging = FALSE;
-    myMIOWindowProperties.myProperties.logWindowMessages = FALSE;
-
-    myMIOWindowProperties.topProperties.dialogFontSize = 8;
-    
-    MIOWin_PropertiesSet (myMIOWindowProperties);
-
-    //
-    // Handle the situation of a test suite program
-    //
-    stIsTestSuiteProgram = FALSE;
-    stTestSuiteInputDirectory = NULL;
-    stTestSuiteOutputDirectory = NULL;
-
-    if (pmTestSuiteProgram)
-    {
-	stIsTestSuiteProgram = TRUE;
-	stTestSuiteInputDirectory = pmInputPath;
-	stTestSuiteOutputDirectory = pmOutputPath;
-	pmInputPath = NULL;
-	pmOutputPath = NULL;
-
-	strcpy (myTestSuiteInputPath, stTestSuiteInputDirectory);
-	if (myTestSuiteInputPath [strlen (myTestSuiteInputPath) - 1] != '\\')
-	{
-	    strcat (myTestSuiteInputPath, "\\");
-	    strcat (myTestSuiteInputPath, MIO_programName);
-	    strcat (myTestSuiteInputPath, ".in");
-	    if (MIOFile_Exists (myTestSuiteInputPath))
-	    {
-		pmInputPath = myTestSuiteInputPath;
-	    }
-	}
-    }
-#endif
-    //
-    // Create the input file, if there is one
-    //
-    MyWipeMIOFile (stMIOStdinRedirect);
-    stEchoInputFromFile = FALSE;
-        
-    if ((pmInputPath != NULL) && (pmInputPath [0] != 0))
-    {
-        SRCPOS mySrcPos;
-        char myDescription [1024];
-    	if(!strncmp("-",pmInputPath,2)){
-		stEchoInputFromFile=FALSE;
-		stMIOStdinRedirect -> filePtr = stdin;
-	}else{
-            
-            stEchoInputFromFile = pmEchoInput;
-            myFile = MDIO_DiskFile_Open (pmInputPath, "r");
-            if (myFile == NULL)
-            {
-//                EdGUI_Message1 (pmWindow, 0, IDS_FILE_OPEN_FAILED_TITLE,
-//                    IDS_FILE_OPEN_FAILED_MESSAGE, pmPathName, 
-//                    EdFail_GetErrorMessage (myErrorBuffer), myErrorCode);
-                return FALSE;
-            }
-            stMIOStdinRedirect -> filePtr = myFile;
-	}
-	stMIOStdinRedirect -> fileType = FILE_KIND_FILE;
-	
-	// Register stdin as a file
-	mySrcPos.fileNo = 0;
-	mySrcPos.lineNo = 0;
-    	strcpy (myDescription, pmInputPath);
-	strcat (myDescription, " [get]");
-        EdInt_NotifyDebuggerObjectAllocated (FILE_STREAM, TURINGSTDIN, 
-					     &mySrcPos, myDescription);
-    }
-    else
-    {
-    	myStdinUsesWindow = TRUE;
-    }
-
-    //        
-    // Create the output file, if there is one
-    //
-    MyWipeMIOFile (stMIOStdoutRedirect);
-    if(pmOutputPath&&!strncmp(pmOutputPath,"-",2)){
-    	myStdoutUsesWindow = FALSE;
-    	myStdoutIsRedirected = TRUE;
-	stMIOStdoutRedirect -> filePtr = stdout;
-	stMIOStdoutRedirect -> fileType = FILE_KIND_FILE;
-    }else if (pmOutputToPrinter || 
-        ((pmOutputPath != NULL) && (pmOutputPath [0] != 0)))
-    {
-	SRCPOS	mySrcPos;
-    	char	myDescription [1024];
-    	
-    	myStdoutUsesWindow = pmOutputToScreenAndFile;
-    	myStdoutIsRedirected = TRUE;
-    	
-    	if (pmOutputToPrinter)
-    	{
-    	    MIOPRINTER	*myPrinter = MyCreateMIOPrinter ("");
-    	    
-    	    if (myPrinter == NULL)
-    	    {
-//    	        EdGUI_Message1 (pmWindow, 0, IDS_FILE_OPEN_FAILED_TITLE,
-//    	            IDS_FILE_OPEN_FAILED_MESSAGE, pmPathName, 
-//    	            EdFail_GetErrorMessage (myErrorBuffer), myErrorCode);
-    	    	return FALSE;
-    	    }
-	    stMIOStdoutRedirect -> filePtr = (void *) myPrinter;
-	    stMIOStdoutRedirect -> fileType = FILE_KIND_PRINTER;    	    
-    	
-	    strcpy (myDescription, "Printer [put]");
-    	}
-    	else
-    	{
-    	    myFile = MDIO_DiskFile_Open (pmOutputPath, "w");
-    	    if (myFile == NULL)
-    	    {
-//    	        EdGUI_Message1 (pmWindow, 0, IDS_FILE_OPEN_FAILED_TITLE,
-//    	            IDS_FILE_OPEN_FAILED_MESSAGE, pmPathName, 
-//    	            EdFail_GetErrorMessage (myErrorBuffer), myErrorCode);
-    	        return FALSE;
-    	    }
-    	    stMIOStdoutRedirect -> filePtr = myFile;
-	    stMIOStdoutRedirect -> fileType = FILE_KIND_FILE;
-
-    	    strcpy (myDescription, pmOutputPath);
-	    strcat (myDescription, " [put]");
-    	}
-	
-	// Register stdin as a file
-	mySrcPos.fileNo = 0;
-	mySrcPos.lineNo = 0;
-        EdInt_NotifyDebuggerObjectAllocated (FILE_STREAM, TURINGSTDOUT, 
-					     &mySrcPos, myDescription);
-    }
-    else
-    {
-    	myStdoutUsesWindow = TRUE;
-    	myStdoutIsRedirected = FALSE;
-    }
-
-    if (myStdinUsesWindow || myStdoutUsesWindow)
-    {
-    	// If output is being redirected to a file (or printer), then 
-    	// use a text window instead of a graphics window.
-    	if (pmDefaultGraphicsMode && !myStdoutIsRedirected)
-    	{
-    	    myWindowAttribs = stGraphicsStdoutWindow;
-    	    myDefaultWindowMode = WINDOW_KIND_GRAPHICS;
-    	}
-    	else
-    	{
-    	    myWindowAttribs = stTextStdoutWindow;
-    	    myDefaultWindowMode = WINDOW_KIND_TEXT;
-    	}
-
-
-	if (myStdinUsesWindow)
-    	{
-    	    stMIOStdinRedirect -> windowPtr = (void *) stDefaultRunWindow;
-    	    stMIOStdinRedirect -> windowType = myDefaultWindowMode;
-	    MIOWindow_RegisterWindow (TURINGSTDIN, MIO_selectedRunWindowInfo);
-    	}
-    	if (myStdoutUsesWindow)
-    	{
-    	    stMIOStdoutRedirect -> windowPtr = (void *) stDefaultRunWindow;
-    	    stMIOStdoutRedirect -> windowType = myDefaultWindowMode;
-	    MIOWindow_RegisterWindow (TURINGSTDOUT, MIO_selectedRunWindowInfo);
-    	}
-    }
-    else
-    {
-    	stDefaultRunWindow = NULL;
-    }
-
-    //
-    // Specify where input is echoed to, if coming from a file
-    //
-    MyWipeMIOFile (stMIOStdinEcho);
-    
-    // If input is from a file and is echoed, then 
-    if (((pmInputPath != NULL) && pmEchoInput) ||
-        ((pmInputPath == NULL) && (stMIOStdoutRedirect -> windowPtr != NULL)))
-    {
-    	*stMIOStdinEcho = *stMIOStdoutRedirect;
-    }
-    else
-    {
-    	if ((pmInputPath == NULL) && (stMIOStdoutRedirect -> windowPtr == NULL))
-    	{
-    	    stMIOStdinEcho -> windowPtr = stDefaultRunWindow;
-    	    stMIOStdinEcho -> windowType = myDefaultWindowMode;
-    	}
-    }
-
-    //
-    // Create the standard error window    
-    //
-    MyWipeMIOFile (stMIOStderr);
-    stMIOStderr -> filePtr = stderr;
-    stMIOStderr -> fileType = FILE_KIND_FILE;
-    stMIOStderr -> windowPtr = NULL;
-    stMIOStderr -> windowType = NULL;
-    // Set stInputEchoReachedNewline so that we echo the next line read in.
-    stInputEchoReachedNewline = TRUE;
-    
     // Reset the TLIB end-of-file marker on stdin
     TL_TLI_TLIEFR(TURINGSTDIN);		/* Reset TLIB eof marker */
 
     // Set the execution directory.
     //FileManager_ChangeExecDirectory ((OOTstring) pmExecutionDirectory);
     //MIOFile_SetExecutionDirectory (pmExecutionDirectory);
-
-    //
-    // The following assumes that the first three entries of TL_TLI_TLIS are
-    // stdin, stdout, stderr and overrides them to point to
-    // MIO_FILE structures using the entry point TL_TLI_TLISF.
-    //
-    TL_TLI_TLISF (TURINGSTDIN, (char *) stMIOStdinRedirect);
-    TL_TLI_TLISF (TURINGSTDOUT, (char *) stMIOStdoutRedirect);
-    TL_TLI_TLISF (TURINGSTDERR, (char *) stMIOStderr);
     
     // We are now executing a program
     stCurrentlyExecutingAProgram = TRUE;
@@ -798,61 +535,8 @@ void	MIO_Finalize_Run (void)
     	MIO_IDFree (cnt);
     }
     stIDCounter = 0;
-
-    // Close any files opened for redirection
-    if (stMIOStdinRedirect -> fileType == FILE_KIND_FILE)
-    {
-	MDIO_DiskFile_Close (stMIOStdinRedirect -> filePtr);
-	stLastFileClosedWasFile = TRUE;
-	MIO_RegisterClose (TURINGSTDIN);
-    }
-    if (stMIOStdoutRedirect -> fileType == FILE_KIND_FILE)
-    {
-	MDIO_DiskFile_Close (stMIOStdoutRedirect -> filePtr);
-	stLastFileClosedWasFile = TRUE;
-	MIO_RegisterClose (TURINGSTDOUT);
-    }
-    // If printer opened for redirecttion, then close it and send contents
-    else if (stMIOStdoutRedirect -> fileType == FILE_KIND_PRINTER)
-    {
-	char	myPrinterHeader [1024];
-
-	MIOPRINTER  *myPrinter = (MIOPRINTER *) stMIOStdoutRedirect -> filePtr;
-
-	strcpy (myPrinterHeader, "Output from ");
-	strcat (myPrinterHeader, MIO_programName);
-
-	EdInt_SubmitPrintJob (NULL, myPrinter -> buffer, 
-    	    		      myPrinter -> currentSize, myPrinterHeader);
-	stLastFileClosedWasFile = TRUE;
-	MIO_RegisterClose (TURINGSTDOUT);
-    }
-
     // Finalize individual MIO modules
     MIOLexer_Finalize_Run ();
-
-    // If this is a test suite program, then write the 
-    // stdout window to the appropriate file.
-    if (stIsTestSuiteProgram)
-    {
-	char	myPathName [4096];
-
-	strcpy (myPathName, stTestSuiteOutputDirectory);
-	if (myPathName [strlen (myPathName) - 1] != '\\')
-	{
-	    strcat (myPathName, "\\");
-	}
-	strcat (myPathName, MIO_programName);
-        if (MIOWin_IsTextWindow (stDefaultRunWindow))
-	{
-	    strcat (myPathName, ".txt");
-	}
-	else
-	{
-	    strcat (myPathName, ".bmp");
-	}
-	MIOWin_SaveWindowToFile (stDefaultRunWindow, myPathName);
-    }
 } // MIO_Finalize_Run
 
 
@@ -861,12 +545,6 @@ void	MIO_Finalize_Run (void)
 /************************************************************************/
 void	MIO_AddToRunWindowList (void *pmWindow)
 {
-    WindowListPtr	myPtr;
-    
-    myPtr = (WindowListPtr) malloc (sizeof (WindowList));
-    myPtr -> window = pmWindow;
-    myPtr -> next = stRunWindowListHead;
-    stRunWindowListHead = myPtr;
 } // MIO_AddToRunWindowList
 
 
@@ -899,15 +577,6 @@ void	MIO_CheckColourRange (OOTint pmClr)
 /************************************************************************/
 void	MIO_CheckInputIsFromKeyboard (const char *pmRoutineName)
 {
-    if (MIO_selectedRunWindow != stDefaultRunWindow)
-    	return;
-    	
-    if ((MIO_selectedRunWindow != NULL) && 
-        (stMIOStdinRedirect -> filePtr == NULL))
-    	return;
-
-    ABORT_WITH_ERRMSG (E_NOT_ALLOWED_IN_TEXT_MODE, 
-	    	      "\"%s\" cannot read input from a file", pmRoutineName);
 } // MIO_CheckInputIsFromKeyboard
 
 
@@ -938,13 +607,6 @@ void	MIO_CheckLineStyleRange (OOTint pmStyle)
 /************************************************************************/
 void	MIO_CheckOuputIsToWindow (const char *pmRoutineName)
 {
-    if (MIO_selectedRunWindow != stDefaultRunWindow)
-    	return;
-    	
-    if ((MIO_selectedRunWindow != NULL) && 
-    	(stMIOStdoutRedirect -> filePtr == NULL))
-    	return;
-
     ABORT_WITH_ERRMSG (E_NOT_ALLOWED_IN_TEXT_MODE, 
 	    	      "Output from \"%s\" cannot sent to a file", 
     	              pmRoutineName);
@@ -959,11 +621,6 @@ void	MIO_CheckOuputIsToWindow (const char *pmRoutineName)
 /************************************************************************/
 void	MIO_CheckOuputWindowIsInGraphicsMode (const char *pmRoutineName)
 {
-    int 	myWindowType = MDIOWin_GetWindowType (MIO_selectedRunWindow);
-
-    if (myWindowType == WINDOW_TYPE_MIO_GRAPHICS)
-        return;
-
     ABORT_WITH_ERRMSG (E_NOT_ALLOWED_IN_TEXT_MODE, 
 	    	      "Output from \"%s\" cannot sent to a text window", 
     	              pmRoutineName);
@@ -990,7 +647,8 @@ void	MIO_DebugOut (const char *pmFormat, ...)
     MDIO_vsprintf (myString, pmFormat, myArgList);
     va_end (myArgList);
     
-    fputs (myString, stMIOStderr);
+    fputs (myString, stderr);
+    fputs ("\n", stderr);
 } // MIO_DebugOut
 
 
@@ -1008,9 +666,9 @@ void	MIO_ErrorInfo (const char *pmFormat, ...)
     	MDIO_vsprintf (myString, pmFormat, myArgList);
     	va_end (myArgList);
     
-    	MyTuringFputs ("[Error] ", stMIOStderr);
-    	MyTuringFputs (myString, stMIOStderr);
-    	MyTuringFputs ("\n", stMIOStderr);
+    	fputs ("[Error] ", stderr);
+    	fputs (myString, stderr);
+    	fputs ("\n", stderr);
     }
 } // MIO_ErrorInfo
 
@@ -1023,26 +681,7 @@ void	MIO_ErrorInfo (const char *pmFormat, ...)
 /************************************************************************/
 MIOWinInfoPtr	MIO_GetTopMostWindow (void)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    MIOWinInfoPtr	myInfo, myTopInfo = NULL;
-    int			myTopZ = 0;
-
-    // Look for the window with the largest zOrder value
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-
-	if (MDIOWin_IsVisible (myPtr -> window) && 
-		(myInfo -> zOrder > myTopZ))
-	{
-	    myTopInfo = myInfo;
-	    myTopZ = myInfo -> zOrder;
-	}
-	
-	myPtr = myPtr -> next;
-    }
-
-    return myTopInfo;
+    return NULL;
 } // MIO_GetTopMostWindow
 
 
@@ -1051,16 +690,6 @@ MIOWinInfoPtr	MIO_GetTopMostWindow (void)
 /************************************************************************/
 BOOL	MIO_IsAnyRunWindowVisible (void)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    
-    while (myPtr != NULL)
-    {
-	if (MDIOWin_IsVisible (myPtr -> window))
-	    return TRUE;
-	
-	myPtr = myPtr -> next;
-    }
-
     return FALSE;
 } // MIO_IsAnyRunWindowVisible
 
@@ -1073,35 +702,7 @@ BOOL	MIO_IsAnyRunWindowVisible (void)
 /************************************************************************/
 MIOWinInfoPtr	MIO_ListTopMostWindows (BOOL pmStart)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    MIOWinInfoPtr	myInfo, myTopInfo = NULL;
-    int			myTopZ = 0;
-    static int		myLastTopZ;
-
-    if (pmStart)
-    {
-	myLastTopZ = 9999999;
-    }
-
-    // Set the buttons from Stop to Close
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-
-	if (MDIOWin_IsVisible (myPtr -> window) && 
-		(myInfo -> zOrder > myTopZ) &&
-		(myInfo -> zOrder < myLastTopZ))
-	{
-	    myTopInfo = myInfo;
-	    myTopZ = myInfo -> zOrder;
-	}
-	
-	myPtr = myPtr -> next;
-    }
-
-    myLastTopZ = myTopZ;
-
-    return myTopInfo;
+    return NULL;
 } // MIO_GetTopMostWindow
 
 
@@ -1110,11 +711,6 @@ MIOWinInfoPtr	MIO_ListTopMostWindows (BOOL pmStart)
 /************************************************************************/
 void	MIO_MakePopupWindowVisible (void)
 {
-    if (MIO_selectedRunWindowInfo -> visibility == VIS_POPUP)
-    {
-    	MDIOWin_ShowWindow (MIO_selectedRunWindow);
-	MIO_selectedRunWindowInfo -> visibility = VIS_VISIBLE;
-    }
 } // MIO_MakePopupWindowVisible
 
 
@@ -1159,15 +755,15 @@ void	MIO_MoreInfo (const char *pmFormat, ...)
 	}
 	MDIO_sprintf (myString, "[Info] Line %d of %s: ", mySrcPos.lineNo, 
 		      myFilePtr);
-    	MyTuringFputs (myString, stMIOStderr);
+    	fputs (myString, stderr);
 
 	// Provide extra information
     	va_start (myArgList, pmFormat);
     	MDIO_vsprintf (myString, pmFormat, myArgList);
     	va_end (myArgList);
     
-    	MyTuringFputs (myString, stMIOStderr);
-    	MyTuringFputs ("\n", stMIOStderr);
+    	fputs (myString, stderr);
+    	fputs ("\n", stderr);
     }
 } // MIO_MoreInfo
 
@@ -1177,35 +773,6 @@ void	MIO_MoreInfo (const char *pmFormat, ...)
 /************************************************************************/
 void	MIO_NotifyTuringProgramFinished (void)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    MIOWinInfoPtr	myInfo;
-
-    MIO_finished = TRUE;
-
-    MySetRunWindowTitles ();
-
-    // Set the buttons from Stop to Close
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-
-	if (myInfo -> buttonBarWindow != NULL)
-	{
-	    MDIOWinTop_DisablePauseButton (myInfo -> buttonBarWindow);
-	    MDIOWinTop_SwitchStopToClose (myInfo -> buttonBarWindow);
-	}
-	if (!myInfo -> displayOnScreen)
-	{
-	    MDIOWin_Update (myInfo -> innerWindow);
-	}
-	myPtr = myPtr -> next;
-    }
-    
-    // Turn off the caret
-    if (MIO_caretOwner != NULL)
-    {
-	MIOWin_CaretDisplay (MIO_caretOwner);
-    }
 } // MIO_NotifyTuringProgramFinished
 
 
@@ -1214,33 +781,6 @@ void	MIO_NotifyTuringProgramFinished (void)
 /************************************************************************/
 void	MIO_NotifyTuringProgramPaused (void)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    MIOWinInfoPtr	myInfo;
-
-    // Set MIO_paused variable.
-    MIO_paused = TRUE;
-
-    // Set the title bar of all run windows.  Set the top menu item 
-    // Paused to Resume.
-    MySetRunWindowTitles ();
-
-    // Set the buttons from Pause to Resume
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-
-	if (myInfo -> buttonBarWindow != NULL)
-	{
-	    MDIOWinTop_SwitchPauseToResume (myInfo -> buttonBarWindow);
-	}
-	myPtr = myPtr -> next;
-    }    		     
-    
-    // Turn off the caret
-    if (MIO_caretOwner != NULL)
-    {
-	MIOWin_CaretDisplay (MIO_caretOwner);
-    }
 } // MIO_NotifyTuringProgramPaused
 
 
@@ -1249,38 +789,6 @@ void	MIO_NotifyTuringProgramPaused (void)
 /************************************************************************/
 void	MIO_NotifyTuringProgramResumed (BOOL pmPutMIOWindowsOnTop)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    MIOWinInfoPtr	myInfo;
-
-    // Set MIO_paused variable.
-    MIO_paused = FALSE;
-
-    // Set the title bar of all run windows.  Set the top menu item 
-    // Paused to Resume.
-    MySetRunWindowTitles ();
-
-    // Set the buttons from Pause to Resume
-    while (myPtr != NULL)
-    {
-	myInfo = MIOWin_GetInfo (myPtr -> window);
-
-	if (myInfo -> buttonBarWindow != NULL)
-	{
-	    MDIOWinTop_SwitchResumeToPause (myInfo -> buttonBarWindow);
-	}
-	myPtr = myPtr -> next;
-    }    
-    
-    if (pmPutMIOWindowsOnTop)
-    {
-	MDIO_PutMIOWindowsOnTop ();
-    }
-    
-    // Turn on the caret (if appropriate)
-    if (MIO_caretOwner != NULL)
-    {
-	MIOWin_CaretDisplay (MIO_caretOwner);
-    }
 } // MIO_NotifyTuringProgramResumed
 
 
@@ -1289,29 +797,6 @@ void	MIO_NotifyTuringProgramResumed (BOOL pmPutMIOWindowsOnTop)
 /************************************************************************/
 void	MIO_RemoveFromRunWindowList (void *pmWindow)
 {
-    WindowListPtr	myPrev = NULL, myPtr = stRunWindowListHead;
-    BOOL		myAnyWindowsVisible = FALSE;
-
-    // Search for the window to be removed    
-    while ((myPtr != NULL) && (myPtr -> window != pmWindow))
-    {
-    	myPrev = myPtr;
-    	myPtr = myPtr -> next;
-    }
-    
-    // Remove the window from the list
-    if (myPtr != NULL)
-    {
-    	if (myPrev == NULL)
-    	{
-    	    stRunWindowListHead = myPtr -> next;
-    	}
-    	else
-    	{
-    	    myPrev -> next = myPtr -> next;
-    	}
-    	free (myPtr);
-    }
 } // MIO_RemoveFromRunWindowList
 
 
@@ -1320,47 +805,6 @@ void	MIO_RemoveFromRunWindowList (void *pmWindow)
 /************************************************************************/
 void	MIO_SetNextWindowActive (WIND pmWindow)
 {
-    WindowListPtr	myPtr;
-    MIOWinInfoPtr	myInfo;
-
-    if (pmWindow != stRunWindowListHead -> window)
-    {
-    	return;
-    }
-
-    // Go through the list looking for the first visible window.  Skip stderr.
-    myPtr = stRunWindowListHead -> next;
-    while (myPtr != NULL)
-    {
-    	myInfo = MIOWin_GetInfo (myPtr -> window);
-    	if ((myInfo -> turingWindowID != TURINGSTDERR) && 
-    	    (myInfo -> visibility == VIS_VISIBLE))
-    	{
-	    Language_Execute_System_Setactive (&myInfo -> turingWindowID);
-	    MIOWindow_SetActive (myInfo -> turingWindowID);
-	    return;
-	}	    
-    	myPtr = myPtr -> next;
-    }
-    
-    // Okay, no go.  Go through the list looking for the first popup window.
-    myPtr = stRunWindowListHead -> next;
-    while (myPtr != NULL)
-    {
-    	myInfo = MIOWin_GetInfo (myPtr -> window);
-    	if ((myInfo -> turingWindowID != TURINGSTDERR) && 
-    	    (myInfo -> visibility == VIS_POPUP))
-    	{
-	    Language_Execute_System_Setactive (&myInfo -> turingWindowID);
-	    MIOWindow_SetActive (myInfo -> turingWindowID);
-	    return;
-    	}
-    	myPtr = myPtr -> next;
-    }
-    
-    // Okay, still no go.  Set the selected run window to NULL.
-    MIO_selectedRunWindow = NULL;
-    MIO_selectedRunWindowInfo = NULL;
 } // MIO_SetNextWindowActive
 
 
@@ -1435,109 +879,7 @@ OOTboolean	MIO_Hasch (void)
 /************************************************************************/
 OOTboolean	MIO_HasEvent (MIOFILE *pmMIOFile, EventDescriptor *pmEvent)
 {
-    if ((pmEvent -> mode == EventMode_InputLine) || 
-	(pmEvent -> mode == EventMode_InputCount) ||
-	(pmEvent -> mode == EventMode_InputToken))
-    {	
-    	// Check to make certain we're testing a real MIOFILE pointer
-    	if (pmMIOFile == NULL)
-    	{
-    	    // TW Assert fail?
-	    return TRUE;
-    	}
-
-    	// Check to see if we're trying to read from stdin, in which case redirect
-    	if (pmMIOFile == stMIOStdin)
-    	{
-    	    return MIO_HasEvent (stMIOStdinRedirect, pmEvent);
-    	}
-    	
-    	// Check to make certain we're testing a real MIOFILE pointer
-    	if ((pmMIOFile -> fileType == FILE_KIND_NONE) && 
-            (pmMIOFile -> windowType == WINDOW_KIND_NONE))
-    	{
-    	    // TW Assert fail?
-	    return TRUE;
-    	}
-
-    	// Check to see if we're trying to check for an event from stdout or stderr
-    	if ((pmMIOFile == stMIOStdout) || (pmMIOFile == stMIOStderr))
-    	{
-    	    // TW Assert fail?
-    	    return TRUE;
-    	}
-
-    	switch (pmMIOFile -> fileType)
-    	{
-    	    case FILE_KIND_FILE:
-	        //  It's a file always return TRUE
-	        return TRUE;
-	    case FILE_KIND_PRINTER:
-	        //  TW Assert fail?
-	        return TRUE;
-            case FILE_KIND_NET:
-	        return MIONet_HasEvent (pmMIOFile -> filePtr, pmEvent);
-        } // switch
-
-    	// If we reach here, it's because we're checking for an event on 
-    	// a window.    
-    	if (pmMIOFile -> windowType)
-    	{
-	    return MIOWin_IsInputAvailable (pmMIOFile -> windowPtr, 
-	    				    pmEvent -> mode, 
-	    				    pmEvent -> count);
-        } // if
-        
-    	// TW If we reach here, we have a problem - assert failure
-    	return TRUE;
-    } // if keyboard event
-
-    switch (pmEvent -> mode)
-    {       
-	case EventMode_InputUnblocked:
-	    // This is only called when doing a getch
-	    return MIOWin_IsInputAvailable (MIO_selectedRunWindow, 
-	    				    EventMode_InputUnblocked, 0);
-	case EventMode_Delay:
-	    return (pmEvent -> count <= MIOTime_GetTicks ());
-
-	case EventMode_MouseButton:
-	    return (MIOMouse_ButtonMoved1 (pmEvent -> count));
-
-	case EventMode_PlayNoteDone:
-	    return MIOMusic_EventCheckNote (pmEvent);
-
-	case EventMode_PlayFreqDone:
-	    return MIOMusic_EventCheckFreq (pmEvent);
-
-	case EventMode_PlayFileDone:
-	    return MIOMusic_EventCheckMusicFile (pmEvent);
-	    
-	case EventMode_NetAccept:
-	    return MIONet_HasEvent (pmMIOFile -> filePtr, pmEvent);
-	    
-	case EventMode_PicDrawFrames:
-	    return MIOPic_EventCheckDrawFrames (pmEvent);
-
-	case EventMode_PicDrawSpecial:
-	    return MIOPic_EventCheckDrawSpecial (pmEvent);
-
-	case EventMode_DialogClose:
-	    // TW Return true when the window specified by count is destroyed.
-	    return TRUE;
-
-/*
-	case EventMode_PlayDone:
-	    return (!soundInUse);
-
-	case EventMode_Event:
-	    POP_UP_WINDOW_IF_NECESSARY (w);
-	    // TW: Handle Events
-	    return FALSE;
-*/        
-    } // switch
-    // TW If we reach here, we have a problem - assert failure
-    return TRUE;
+return TRUE;
 } // MIO_HasEvent
 
 
@@ -2080,29 +1422,6 @@ void	MIO_SendInfoToStderr (BOOL pmLibErrors, BOOL pmLibInfo)
 /************************************************************************/
 OOTboolean MIO_SetActive (MIOFILE *pmMIOFile)
 {
-    if (pmMIOFile == stMIOStdout)
-    {
-    	MIO_selectedRunWindow = stDefaultRunWindow;
-    	if (MIO_selectedRunWindow == NULL)
-    	{
-	    MIO_selectedRunWindowInfo = NULL;
-	    return FALSE;
-    	}
-	MIO_selectedRunWindowInfo = MIOWin_GetInfo (MIO_selectedRunWindow);
-	MyMoveToFrontOfRunWindowList (MIO_selectedRunWindow);
-    	return FALSE;
-    }
-    else if (pmMIOFile && pmMIOFile -> windowType) 
-    {
-	MIO_selectedRunWindow = pmMIOFile -> windowPtr;
-	MIO_selectedRunWindowInfo = MIOWin_GetInfo (MIO_selectedRunWindow);
-	MyMoveToFrontOfRunWindowList (MIO_selectedRunWindow);
-	return FALSE;
-    }
-    else
-    {
-	return TRUE;
-    }
 } // MIO_SetActive
 
 
@@ -2196,7 +1515,7 @@ void	*MIO_StreamGet (int pmStreamID, int pmStreamType)
     }
     else if ((pmStreamID == STDERR_WINDOW) && (pmStreamType == WINDOW_STREAM))
     {
-    	return MIOWin_GetInfo (stMIOStderr -> windowPtr);
+    	return MIOWin_GetInfo (stderr -> windowPtr);
     }
 
     if (((-2 <= pmStreamID) && (pmStreamID <= 0)) ||
@@ -2378,11 +1697,6 @@ void	MIO_SubstituteRunWindow (WIND pmOldWindow, WIND pmNewWindow,
 	MIO_selectedRunWindowInfo = MIOWin_GetInfo (pmNewWindow);
     }
 
-    if (stDefaultRunWindow == pmOldWindow)
-    {
-	stDefaultRunWindow = pmNewWindow;
-    }
-
     // Substitute the new window for the old in the MIOFILE structure
     // associated with the old window.
     if (myInfo -> turingMIOFilePtr != NULL)
@@ -2390,19 +1704,6 @@ void	MIO_SubstituteRunWindow (WIND pmOldWindow, WIND pmNewWindow,
     	((MIOFILE *) (myInfo -> turingMIOFilePtr)) -> windowPtr = pmNewWindow;
     }
     
-    // Substitute the new window for the old in stdin/out/err.
-    if (stMIOStdinRedirect -> windowPtr == pmOldWindow)
-    {
-	stMIOStdinRedirect -> windowPtr = pmNewWindow;
-    }
-    if (stMIOStdoutRedirect -> windowPtr == pmOldWindow)
-    {
-	stMIOStdoutRedirect -> windowPtr = pmNewWindow;
-    }
-    if (stMIOStdinEcho -> windowPtr == pmOldWindow)
-    {
-	stMIOStdinEcho -> windowPtr = pmNewWindow;
-    }
 } // MIO_SubstituteRunWindow
 
 
@@ -2636,22 +1937,6 @@ static MIOFILE	*MyMakeMIOFILEFromWindow (WIND pmWindow)
 /************************************************************************/
 static void	MyMoveToFrontOfRunWindowList (WIND pmWindow)
 {
-    WindowListPtr	myPtr, myPrev;
-
-    if (pmWindow == stRunWindowListHead -> window)
-    {
-    	return;
-    }
-    
-    myPtr = stRunWindowListHead;
-    while (pmWindow != myPtr -> window)
-    {
-    	myPrev = myPtr;    
-    	myPtr = myPtr -> next;
-    }
-    myPrev -> next = myPtr -> next;
-    myPtr -> next = stRunWindowListHead;
-    stRunWindowListHead = myPtr;
 } // MyMoveToFrontOfRunWindowList
 
 
@@ -2660,13 +1945,6 @@ static void	MyMoveToFrontOfRunWindowList (WIND pmWindow)
 /************************************************************************/
 static void	MySetRunWindowTitles (void)
 {
-    WindowListPtr	myPtr = stRunWindowListHead;
-    
-    while (myPtr != NULL)
-    {
-	MIOWin_SetRunWindowTitle (myPtr -> window);
-	myPtr = myPtr -> next;
-    }    		     
 } // MySetRunWindowTitles
 
 /************************************************************************/

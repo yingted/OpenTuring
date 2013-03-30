@@ -233,19 +233,19 @@ void TL_TLI_TLIUDUMP () {
 
 extern TLaddressint fopen ();
 
-extern void fflush ();
+extern int fflush ();
 
-extern void fclose ();
+extern int fclose ();
 
 extern TL_Cint fgetc ();
 
-extern void ungetc ();
+extern int ungetc ();
 
-extern void fputc ();
+extern int fputc ();
 
-extern void fputs ();
+extern int fputs ();
 
-extern void fseek ();
+extern int fseek ();
 
 extern TLint4 ftell ();
 

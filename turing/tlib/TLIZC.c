@@ -52,5 +52,9 @@ TLIreset( fd )
     FILE *fd;
 {
     clearerr( fd );
+#ifdef _WIN32
     fd->_cnt = 0;
+#else
+    rewind(fd);
+#endif
 }

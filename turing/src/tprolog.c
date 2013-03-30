@@ -160,10 +160,8 @@ int main(int argc,char*argv[]){
     stTuringProgramPaused = FALSE;
     stTuringProgramHalting = FALSE;
     stQuittingEnvironment = FALSE;
-    do
-    {
-            Language_ExecuteProgram (&stRunStatus, &stErrorPtr, &myNumErrors);
-    } while ((stRunStatus.state != Finished) && (!stTuringProgramHalting));
+    do Language_ExecuteProgram (&stRunStatus, &stErrorPtr, &myNumErrors);
+    while ((stRunStatus.state != Finished) && (!stTuringProgramHalting));
 
     // At this point, the program has either finished executing or the been
     // told to halt (permanently) either by the user closing a run window or
@@ -192,6 +190,7 @@ int main(int argc,char*argv[]){
 	fprintf (stderr,"Run time error on line %d [%d-%d] of %s: %s\n",
 	    mySrc->lineNo, mySrc->linePos + 1,mySrc -> linePos + mySrc -> tokLen,
 	    myErrorPathName, stErrorPtr -> text);
+	return 1;
     }
     return 0;
 } // WinMain

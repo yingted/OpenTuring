@@ -1,4 +1,5 @@
 #include "cinterface"
+#include<stdio.h>
 typedef	TLnat2	FileManager_FileNoType;
 typedef	TLnat4	FileManager_FileTimeStamp;
 typedef	TLint2	FileManager_ResultCode;
@@ -743,6 +744,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 	    TLASSERT (Language_Execute_RQHead == me);
 	    op = (* (Language_Opcode *) Language_Execute_globalPC);
 	    Language_Execute_globalPC += Language_codeOprSize;
+	    //printf("op=%hu\n",op);
 	    switch (op) {
 		case 0:
 		case 1:
@@ -1426,7 +1428,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			TLint4	externIndex;
 			Language_Execute_SetErrno((TLint4) 0, (TLaddressint) 0);
 			externIndex = (* (Language_Offset *) Language_Execute_globalPC);
-			TLASSERT (externIndex < externLookupCount);
+			TLASSERT (externIndex < externLookupCount);//printf("%s(...)\n",(char*)externLookupTable[TLINRANGELOW(externIndex, 0, 9999, 1)].procName);
 			(externLookupTable[TLINRANGELOW(externIndex, 0, 9999, 1)].procRoutine)((TLaddressint) Language_Execute_globalSP);
 			if (Language_Execute_RQHead != me) {
 			    Language_Execute_globalPC -= Language_codeOprSize;
@@ -1683,7 +1685,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			};
 		    }
 		    break;
-		case 80:
+		case 80://eq
 		    {
 			Language_Execute_globalSP += 4;
 			if (((* (TLint4 *) ((unsigned long) Language_Execute_globalSP - 4))) == ((* (TLint4 *) Language_Execute_globalSP))) {
@@ -1792,7 +1794,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			(* (TLint4 *) Language_Execute_globalSP) = value;
 		    }
 		    break;
-		case 94:
+		case 94://dereference
 		    {
 			register TLint4	value;
 			value = (* (TLint4 *) ((* (TLaddressint *) Language_Execute_globalSP)));
@@ -1800,7 +1802,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			(* (TLint4 *) Language_Execute_globalSP) = value;
 		    }
 		    break;
-		case 95:
+		case 95://check nat4
 		    {
 			register TLnat4	value;
 			value = (* (TLnat4 *) ((* (TLaddressint *) Language_Execute_globalSP)));
@@ -2399,7 +2401,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			Language_Execute_globalPC += Language_codeOffsetSize;
 		    }
 		    break;
-		case 150:
+		case 150://push negative frame offset
 		    {
 			Language_Execute_globalSP -= 4;
 			(* (TLaddressint *) Language_Execute_globalSP) = (TLaddressint) ((unsigned long) fp - ((* (Language_Offset *) Language_Execute_globalPC)));
@@ -2413,7 +2415,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			Language_Execute_globalPC += Language_codeOffsetSize;
 		    }
 		    break;
-		case 152:
+		case 152://push fp+(a2-a1)
 		    {
 			Language_Execute_globalSP -= 4;
 			(* (TLaddressint *) Language_Execute_globalSP) = (TLaddressint) (((unsigned long) fp - ((* (Language_Offset *) Language_Execute_globalPC))) + ((* (Language_Offset *) ((unsigned long) Language_Execute_globalPC + Language_codeOffsetSize))));
@@ -2806,7 +2808,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			Language_Execute_globalPC += Language_codeAddrSize;
 		    }
 		    break;
-		case 188:
+		case 188://push addr
 		    {
 			Language_Execute_globalPC += Language_codeOffsetSize;
 			Language_Execute_globalSP -= 4;
@@ -4192,7 +4194,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			Language_Execute_globalSP += 4;
 		    }
 		    break;
-		case 166:
+		case 166://checked multiply
 		    {
 			register TLnat4	rVal;
 			register TLnat4	lVal;

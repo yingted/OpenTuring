@@ -8,12 +8,14 @@ SRCDIR                = .
 DLLS                  =
 LIBS                  =
 EXES                  = tlib.exe
+#EXES                  =
 
 
 
 ### Common settings
 
-CEXTRA                = -mno-cygwin
+#CEXTRA                = -mno-cygwin
+CEXTRA                =
 CXXEXTRA              = -mno-cygwin
 RCEXTRA               =
 DEFINES               =
@@ -264,7 +266,8 @@ RC_SRCS               = $(tlib_exe_RC_SRCS)
 
 ### Tools
 
-CC = winegcc
+#CC = winegcc
+CC = gcc
 CXX = wineg++
 RC = wrc
 AR = ar
@@ -272,7 +275,8 @@ AR = ar
 
 ### Generic targets
 
-all: $(DLLS:%=%.so) $(LIBS) $(EXES)
+all: $(DLLS:%=%.so) $(LIBS) $(tlib_exe_OBJS)
+#$(EXES)
 
 ### Build rules
 

@@ -5,6 +5,7 @@
 #define __TPLUSC__
 
 #include <setjmp.h>
+#include <string.h>
 
 /*
 ** Predefined Types

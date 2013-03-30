@@ -4,10 +4,10 @@
  *
  */
 
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <process.h>
 #include <malloc.h>
 
 #define CLOCK_SCALE_FACTOR	1000/CLOCKS_PER_SEC
