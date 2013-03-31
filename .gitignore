@@ -31,3 +31,7 @@ turing/vc projects/BasicTest.t
 
 turing/obj/*
 turing/Debug/*
+
+# av #
+######
+*.t
