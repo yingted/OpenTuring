@@ -2,7 +2,7 @@
 #include "hashmap.h"
 
 #include <stdio.h>
-#include <string.h>
+#include "/usr/include/string.h"
 #include <stdlib.h>
 #include <assert.h>
 
@@ -134,14 +134,11 @@ static hashmapEntry* find(const hashmap* map, const char* key)
 static int insert(hashmap* map, void* data, char* key)
 {
     hashmapEntry* entry;
-    
     if (map->size == map->count)
         rehash(map);
-    
     do
     {
         entry = find(map, key);
-        
         if (entry)
         {
             entry->data = data;
@@ -177,7 +174,7 @@ static int compare(const hashmapEntry* lhs, const hashmapEntry* rhs)
 hashmap* newHashmap(unsigned int hint)
 {
     hashmap* map = (hashmap*) malloc(sizeof(hashmap));
-    
+        
     if (hint < 4)
     {
         hint = 4;
@@ -194,11 +191,9 @@ hashmap* newHashmap(unsigned int hint)
         while (i <= (sizeof(hint) << 2));
         ++hint;
     }
-    
     map->array = (hashmapEntry*) calloc(sizeof(hashmapEntry), hint);
     map->size = hint - 1;
     map->count = 0;
-    
     return map;
 }
 
@@ -214,14 +209,13 @@ void deleteHashmap(hashmap* map)
             free(map->array[index].key);
     }
     while (++index <= map->size);
-
     free(map->array);
     free(map);
 }
 
 int hashmapSet(hashmap* map, void* data, const char* key)
 {
-    return (map && key && *key)  ? insert(map, data, _strdup(key))
+    return (map && key && *key)  ? insert(map, data, strdup(key))
                                  : HASHMAP_ILLEGAL;
 }
 
