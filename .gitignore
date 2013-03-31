@@ -35,3 +35,4 @@ turing/Debug/*
 # av #
 ######
 *.t
+tprolog
