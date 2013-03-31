@@ -244,7 +244,7 @@ $(src_exe_MODULE): $(src_exe_OBJS)
 
 export CFLAGS
 ../bin/tprolog:
-	make -BC ../tlib
+	make -kBC ../tlib || :
 	$(CC) $(CFLAGS) -o $@ tprolog.c -w -I../../ready/src -I/usr/include/wine/windows ../../ready/src/edtext.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string}.o ../tlib/{TL,tl}*.o {lookup,tleabt,edint,hashmap}.o mio{,window,time,error,dir,hashmap,lexer,sys,wrapper,config,crypto,text,view,file}.o mdio.o /usr/lib32/wine/{shell32,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
 #	gcc $(CEXTRA) $(DEFINCL) -I/usr/include/wine/windows -o tprolog.bin tprolog.c -w -I../../ready/src ../../ready/src/ed{file,text,fail}.o tprolog/{error,event,execute,heap,kernel,language,limits,math,mt,run,star,string,system}.o ../tlib/{TL,tl}*.o {fileman,lookup,tleabt,fileio,edint,hashmap,dbgalloc}.o mio{,win,window,time,error,dir,file,hashmap,lexer,sys,wintext,wrapper,config,crypto,text,view}.o mdio{,time,dir,file,sys,config}.o /usr/lib/wine/{shell32,msvcrt40,msvcrt,version}.dll.so libungif/liblibungif.a -Wl,--unresolved-symbols=ignore-in-object-files
 #tprolog.exe:
