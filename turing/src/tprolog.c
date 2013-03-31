@@ -169,7 +169,6 @@ int main(int argc,char*argv[]){
     // seccomp!!!
 #define add(x,...) &&!(ret=seccomp_rule_add(ctx,SCMP_ACT_ALLOW,SCMP_SYS(x),__VA_ARGS__))
 #ifdef USE_SECCOMP
-    printf("Init seccomp\n");
     scmp_filter_ctx ctx;
     int ret;
     if((ctx=seccomp_init(SCMP_ACT_KILL))
@@ -192,7 +191,6 @@ int main(int argc,char*argv[]){
         return -ret;
     }
 #endif
-    printf("Program execution starts\n");
     do Language_ExecuteProgram (&stRunStatus, &stErrorPtr, &myNumErrors);
     while ((stRunStatus.state != Finished) && (!stTuringProgramHalting));
 
