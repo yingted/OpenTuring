@@ -1,7 +1,12 @@
 /* tprolog.c */
 
 /* System includes */
+#include <unistd.h>
+#include <seccomp.h>
+#include <sys/mman.h>
 #include <stdio.h>
+
+#define USE_SECCOMP
 
 /* Self include */
 #include "tprolog.h"
@@ -160,6 +165,32 @@ int main(int argc,char*argv[]){
     stTuringProgramPaused = FALSE;
     stTuringProgramHalting = FALSE;
     stQuittingEnvironment = FALSE;
+    
+    // seccomp!!!
+#define add(x,...) &&!(ret=seccomp_rule_add(ctx,SCMP_ACT_ALLOW,SCMP_SYS(x),__VA_ARGS__))
+#ifdef USE_SECCOMP
+    scmp_filter_ctx ctx;
+    int ret;
+    if((ctx=seccomp_init(SCMP_ACT_KILL))
+       add(read,1,SCMP_A0(SCMP_CMP_EQ,STDIN_FILENO))
+       add(write,1,SCMP_A0(SCMP_CMP_EQ,STDOUT_FILENO))
+       add(write,1,SCMP_A0(SCMP_CMP_EQ,STDERR_FILENO))
+       add(fstat64,1,SCMP_A0(SCMP_CMP_EQ,STDIN_FILENO))
+       add(fstat64,1,SCMP_A0(SCMP_CMP_EQ,STDOUT_FILENO))
+       add(fstat64,1,SCMP_A0(SCMP_CMP_EQ,STDERR_FILENO))
+       add(mmap2,4,SCMP_A2(SCMP_CMP_EQ,PROT_READ|PROT_WRITE),SCMP_A3(SCMP_CMP_EQ,MAP_PRIVATE|MAP_ANONYMOUS),SCMP_A4(SCMP_CMP_EQ,-1),SCMP_A5(SCMP_CMP_EQ,(off_t)0))
+       add(munmap,0)
+       add(getpid,0)
+       add(time,0)
+       add(times,0)
+       add(brk,0)
+       add(exit_group,0)
+       &&(ret=seccomp_load(ctx))<0) {
+        fprintf(stderr,"error %d\n",ret);
+        seccomp_release(ctx);
+        return -ret;
+    }
+#endif
     do Language_ExecuteProgram (&stRunStatus, &stErrorPtr, &myNumErrors);
     while ((stRunStatus.state != Finished) && (!stTuringProgramHalting));
 
@@ -192,6 +223,9 @@ int main(int argc,char*argv[]){
 	    myErrorPathName, stErrorPtr -> text);
 	return 1;
     }
+#ifdef USE_SECCOMP
+    seccomp_release(ctx);
+#endif
     return 0;
 } // WinMain
 
