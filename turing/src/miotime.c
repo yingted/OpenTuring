@@ -164,7 +164,7 @@ OOTint	MIOTime_DateSec (OOTstring pmDateTimeStr)
 /************************************************************************/
 OOTint	MIOTime_Elapsed (void)
 {
-    return MIOTime_GetTicks () - stStartTick;
+    return (MIOTime_GetTicks ()*1000 - stStartTick*1000)/1000;
 } // MIOTime_Elapsed
 
 
@@ -173,7 +173,7 @@ OOTint	MIOTime_Elapsed (void)
 /************************************************************************/
 OOTint	MIOTime_ElapsedCPU (void)
 {
-    return MIOTime_GetTicks () - stStartTick;
+    return MIOTime_Elapsed();
 } // MIOTime_ElapsedCPU
 
 
