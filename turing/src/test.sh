@@ -1,3 +1,4 @@
 #!/bin/bash
-../bin/tprologc test.t # bytecode goes to test.tbc
-../bin/tprolog test.tbc # stuff should work
+cd ../../turing/package
+"$OLDPWD"/../bin/tprologc "$OLDPWD"/test.t # bytecode goes to test.tbc
+"$OLDPWD"/../bin/tprolog "$OLDPWD"/test.tbc # stuff should work

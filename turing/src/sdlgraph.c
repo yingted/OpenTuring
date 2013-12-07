@@ -1,5 +1,6 @@
 #include "sdlgraph.h"
 
+#if 0
 #include "sdl.h"
 
 int SDLGraph_Startup(OOTint width,OOTint height)
@@ -12,3 +13,4 @@ int SDLGraph_Startup(OOTint width,OOTint height)
     
     return 0;    
 }
+#endif

@@ -432,7 +432,7 @@ extern void TL_TLB_TLBUUN ();
 
 extern void TL_TLB_TLBUNI ();
 
-extern void strcpy ();
+////extern void strcpy ();
 typedef	TLint2	Language_Execute_ExecutionError_OverflowKind;
 
 void Language_Execute_ExecutionError_Abort ();
@@ -1576,7 +1576,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 		case 35:
 		    {
 
-			extern void memcpy ();
+			//extern void memcpy ();
 			TLASSERT (((unsigned long) Language_Execute_globalPC & (3)) == 0);
 			memcpy((TLaddressint) ((* (TLaddressint *) ((unsigned long) Language_Execute_globalSP + 4))), (TLaddressint) ((* (TLaddressint *) Language_Execute_globalSP)), (TLint4) ((* (Language_Offset *) Language_Execute_globalPC)));
 			Language_Execute_globalSP += 8;
@@ -1586,7 +1586,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 		case 36:
 		    {
 
-			extern void memcpy ();
+			//extern void memcpy ();
 			TLASSERT (((unsigned long) Language_Execute_globalPC & (3)) == 0);
 			memcpy((TLaddressint) ((* (TLaddressint *) Language_Execute_globalSP)), (TLaddressint) ((* (TLaddressint *) ((unsigned long) Language_Execute_globalSP + 4))), (TLint4) ((* (Language_Offset *) Language_Execute_globalPC)));
 			Language_Execute_globalSP += 8;
@@ -1905,7 +1905,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			amount = (* (Language_Offset *) Language_Execute_globalPC);
 			if (amount != 0) {
 
-			    extern void memset ();
+			    //extern void memset ();
 			    Language_Execute_globalSP -= amount;
 			    memset((TLaddressint) Language_Execute_globalSP, (TLint4) 0, (TLint4) amount);
 			};
@@ -3145,7 +3145,7 @@ struct Language_Execute_RunDescriptor	*runDesc;
 			Language_Execute_RQHead->fp = (TLaddressint) fp;
 			if (localSize != 0) {
 
-			    extern void memset ();
+			    //extern void memset ();
 			    Language_Execute_globalSP -= localSize;
 			    memset((TLaddressint) Language_Execute_globalSP, (TLint4) 0, (TLint4) localSize);
 			};

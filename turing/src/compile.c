@@ -1171,7 +1171,7 @@ struct	Language_Compile_TokRecord {
 struct Language_Compile_TokRecord	Language_Compile_newTok;
 struct Language_Compile_TokRecord	Language_Compile_oldTok;
 
-extern char *strcpy ();
+//extern char *strcpy ();
 
 void Language_Compile_CleanChar (c, __x1607)
 TLchar	c;

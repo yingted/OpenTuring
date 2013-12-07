@@ -8,11 +8,12 @@ For security reasons, system calls and calls to some functions cause an error.
 
 Building
 ========
-In turing/src, `make tprolog`, optionally setting CFLAGS.
+In turing/src, `make ../bin/tprolog`, optionally setting CFLAGS.
 
 Performance tests
 =================
 These are *not* a Windows vs Linux or MSVC vs GCC test, since the source code here has some fat cut out.
+Also, the compile options might differ (i.e. the CHECKING flag).
 
 System
 ------

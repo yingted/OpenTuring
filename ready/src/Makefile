@@ -129,8 +129,9 @@ DEFINCL = $(INCLUDE_PATH) $(DEFINES) $(OPTIONS)
 .cxx.o:
 	$(CXX) -c $(CXXFLAGS) $(CXXEXTRA) $(DEFINCL) -o $@ $<
 
+RCFLAGS += -D_OPEN_TURING_
 .rc.res:
-	$(RC) $(RCFLAGS) $(RCEXTRA) $(DEFINCL) -fo$@ $<
+	$(RC) $(RCFLAGS) $(RCEXTRA) -fo$@ $<
 
 # Rules for cleaning
 
