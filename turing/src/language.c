@@ -717,7 +717,7 @@ static void Language_ScanPredefs () {
     TLSETL(100321);
     {
 	TLstring	__x1131;
-	FileManager_PathName("%oot/support/predefs/predefs.lst", __x1131);
+	FileManager_PathName("%oot/support/predefs/Predefs.lst", __x1131);
 	TLSTRASS(255, predefFile, __x1131);
     };
     TLSETL(100331);
