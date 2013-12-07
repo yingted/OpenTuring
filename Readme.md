@@ -1,5 +1,130 @@
 #tprolog for linux
 Okay, so it works. If you have time, please stub out `turing/src/miowrapper.c` et al.
+
+The purpose of this project is to provide a Turing interpreter for online judges running on Linux.
+The main goal, the ~15x improvement over Wine, has already been achieved. Performance is on par with Python, so Turing programs do not need longer time limits.
+Standard IO work as expected, so all IO is "to screen" rather than "to file". The performance of IO-bound programs is now acceptable.
+For security reasons, system calls and calls to some functions cause an error.
+
+Building
+========
+In turing/src, `make tprolog`, optionally setting CFLAGS.
+
+Performance tests
+=================
+These are *not* a Windows vs Linux or MSVC vs GCC test, since the source code here has some fat cut out.
+
+System
+------
+- 1.66 GHz
+- 32-bit
+- 1 GB RAM
+- Windows 7 Starter with search indexing, antivirus, etc. all disabled
+- Fedora 18 Linux with PAE
+
+Turing 4.1.1 on Windows
+-----------------------
+
+    fibonacci: 1346269 in 4920 ms
+    for loop: 1e7 in 2272 ms
+    for loop with decl: 1e7 in 4616 ms
+    array: 1e8 in 9383 ms
+    string: 1e3 in 1547 ms
+
+OpenTuring on Windows
+---------------------
+
+    fibonacci: 1346269 in 3096 ms
+    for loop: 1e7 in 1274 ms
+    for loop with decl: 1e7 in 2759 ms
+    array: 1e8 in 3301 ms
+    string: 1e3 in 1082 ms
+
+tprolog on Linux
+----------------
+
+    fibonacci: 1346269 in 1820 ms
+    for loop: 1e7 in 840 ms
+    for loop with decl: 1e7 in 1940 ms
+    array: 1e8 in 2280 ms
+    string: 1e3 in 570 ms
+
+Python 2.7.3 (not Turing) on Linux
+----------------------------------
+
+    fibonacci
+    10 loops, best of 3: 2.25 sec per loop
+    for loop
+    10 loops, best of 3: 1.18 sec per loop
+    for loop with decl
+    10 loops, best of 3: 1.9 sec per loop
+    array
+    10 loops, best of 3: 1.71 sec per loop
+    string
+    10 loops, best of 3: 201 msec per loop
+
+Note: Python is garbage-collected, so taking the best of 3 runs of 10 loops is more accurate.
+
+Conclusion
+----------
+Python is faster than Turing.
+
+Python benchmark code
+---------------------
+
+    #!/bin/sh
+    echo fibonacci
+    python -mtimeit -s '
+    def fib(n):
+    	return 1 if n<2 else fib(n-1)+fib(n-2)
+    ' 'fib(30)'
+    echo for loop
+    python -mtimeit 'for _ in xrange(10000000):pass'
+    echo for loop with decl
+    python -mtimeit 'for _ in xrange(10000000):six=6'
+    echo array
+    python -mtimeit '[0]*100000000'
+    echo string
+    python -mtimeit '
+    for _ in xrange(1000):
+    	s=""
+    	while len(s)!=255:
+    		s+="a"
+    '
+
+Turing benchmark code
+---------------------
+
+    var t:=Time.Elapsed
+    proc bench(msg:string)
+        put msg," in ",Time.Elapsed-t," ms"
+        t:=Time.Elapsed
+    end bench
+    fcn fib(n:int):int
+        if n<2 then
+    	result 1
+        end if
+        result fib(n-1)+fib(n-2)
+    end fib
+    bench("fibonacci: "+intstr(fib(30)))
+    for:1..10000000
+    end for
+    bench("for loop: 1e7")
+    for:1..10000000
+        var six:=6
+    end for
+    bench("for loop with decl: 1e7")
+    var largearray:array 1..100000000 of int
+    bench("array: 1e8")
+    for:1..1000
+        var s:=""
+        loop
+            exit when length(s)=255
+            s+="a"
+        end loop
+    end for
+    bench("string: 1e3")
+
 Original Readme.md:
 #Open Turing 1.0
 ####Download: https://github.com/downloads/Open-Turing-Project/OpenTuring/package.zip
