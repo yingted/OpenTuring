@@ -112,9 +112,7 @@ int main(int argc, char* argv[])
     //EdPrint_Init ();
     TL ();
     FileManager ();
-#ifndef TCC
     Language ();
-#endif
     if (!MyInitializeGlobals ())
     {
         return 0;

@@ -13,6 +13,7 @@ In turing/src, `make ../bin/tprolog`, optionally setting CFLAGS.
 Performance tests
 =================
 These are *not* a Windows vs Linux or MSVC vs GCC test, since the source code here has some fat cut out.
+Also, the compile options might differ (i.e. the CHECKING flag).
 
 System
 ------
