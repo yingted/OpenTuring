@@ -129,7 +129,7 @@ DEFINCL = $(INCLUDE_PATH) $(DEFINES) $(OPTIONS)
 .cxx.o:
 	$(CXX) -c $(CXXFLAGS) $(CXXEXTRA) $(DEFINCL) -o $@ $<
 
-RCFLAGS += _OPEN_TURING_
+RCFLAGS += -D_OPEN_TURING_
 .rc.res:
 	$(RC) $(RCFLAGS) $(RCEXTRA) -fo$@ $<
 
