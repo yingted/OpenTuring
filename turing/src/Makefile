@@ -262,14 +262,15 @@ $(src_exe_MODULE): $(src_exe_OBJS)
 	$(CC) $(src_exe_LDFLAGS) -o $@ $(src_exe_OBJS) $(src_exe_LIBRARY_PATH) $(src_exe_DLL_PATH) $(DEFLIB) $(src_exe_DLLS:%=-l%) $(src_exe_LIBRARIES:%=-l%)
 
 OBJS = fileio.o fileman.o lookup.o tleabt.o edint.o hashmap.o mio.o miowindow.o miotime.o mioerror.o miodir.o miohashmap.o miolexer.o miosys.o miowrapper.o mioconfig.o miocrypto.o miotext.o mioview.o miofile.o mdio.o language.o unitman.o error.o debug.o compile.o execute.o comperr.o memory.o scanner.o prescan.o scope.o value.o types.o symbol.o coder.o predef.o lists.o expn.o typedecl.o util.o parser.o alloc.o heap.o kernel.o string.o system.o math.o limits.o event.o mt.o star.o paraoot.o
+TPROLOG_OBJS = $(OBJS) run.o
 DEPS =  ../../ready/src/edtext.o ../tlib/{TL,tl}*.o
 deps: $(OBJS)
 	$(MAKE) -kC ../tlib || :
 	$(CFLAGS += -DCONSOLE)
 	$(MAKE) -kC ../../ready/src || :
 
-../bin/tprolog: tprolog.c deps
-	$(CC) $(CFLAGS) -o $@ tprolog.c $(LIBSECCOMP) -w -I../../ready/src -I/usr/include/wine/windows $(DEPS) $(OBJS) $(LIB32)/wine/{shell32,version}.dll.so -Wl,--unresolved-symbols=ignore-in-object-files
+../bin/tprolog: tprolog.c deps $(TPROLOG_OBJS)
+	$(CC) $(CFLAGS) -o $@ tprolog.c $(LIBSECCOMP) -w -I../../ready/src -I/usr/include/wine/windows $(DEPS) $(TPROLOG_OBJS) $(LIB32)/wine/{shell32,version}.dll.so -Wl,--unresolved-symbols=ignore-in-object-files
 
 ../bin/tprologc: tprolog.c deps
 	$(CC) $(CFLAGS) -o $@ tprolog.c -DTCC $(LIBSECCOMP) -w -I../../ready/src -I/usr/include/wine/windows $(DEPS) $(OBJS) $(LIB32)/wine/{shell32,version}.dll.so -Wl,--unresolved-symbols=ignore-in-object-files
