@@ -110,23 +110,23 @@ int main(int argc, char* argv[])
     FilePath myCurrentDirectory;
     //EdGUI_Init ();
     //EdPrint_Init ();
+
+    #ifdef TCC
+        check(argc==2||argc==3,"Usage: %s code.t [includedir]",argv[0]);
+    #else
+        check(argc==2||argc==3,"Usage: %s bytecode.tbc [includedir]",argv[0]);
+    #endif
+
     TL ();
     FileManager ();
     Language ();
-    if (!MyInitializeGlobals ())
-    {
+    if (!MyInitializeGlobals ()) {
+        fprintf(stderr, "failed to initialize globals\n");
         return 1;
     }
-    
-#ifdef TCC
-    check(argc==2,"Usage: %s code.t",argv[0]);
-#else
-    check(argc==2,"Usage: %s bytecode.tbc",argv[0]);
-#endif
-    // resource gets must be based from the bytecode file
-    //check(!myStatus,"Unable to open object file %s",argv[1]);
-    
+        
     FileManager_SetHomeDir (stStartupDirectory);
+    if (argc == 3) FileManager_SetDefaultInclude(argv[2]);
 
 #ifdef TCC
     
