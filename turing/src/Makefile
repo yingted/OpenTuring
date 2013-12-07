@@ -195,7 +195,7 @@ ifeq ($(wildcard $(LIB32)/libseccomp.a),)
 else
 	LIBSECCOMP=$(LIB32)/libseccomp.a #../../../libseccomp-libseccomp/src/libseccomp.a
 endif
-override CFLAGS += -m32
+override CFLAGS += -m32 -DCONSOLE
 export CFLAGS
 
 ### Tools
@@ -265,9 +265,8 @@ OBJS = fileio.o fileman.o lookup.o tleabt.o edint.o hashmap.o mio.o miowindow.o 
 TPROLOG_OBJS = $(OBJS) run.o
 DEPS =  ../../ready/src/edtext.o ../tlib/{TL,tl}*.o
 deps: $(OBJS)
-	$(MAKE) -kC ../tlib || :
-	$(CFLAGS += -DCONSOLE)
-	$(MAKE) -kC ../../ready/src || :
+	$(MAKE) CFLAGS='$(CFLAGS)' -kC ../tlib || :
+	$(MAKE) CFLAGS='$(CFLAGS)' -kC ../../ready/src || :
 
 ../bin/tprolog: tprolog.c deps $(TPROLOG_OBJS)
 	$(CC) $(CFLAGS) -o $@ tprolog.c $(LIBSECCOMP) -w -I../../ready/src -I/usr/include/wine/windows $(DEPS) $(TPROLOG_OBJS) $(LIB32)/wine/{shell32,version}.dll.so -Wl,--unresolved-symbols=ignore-in-object-files
