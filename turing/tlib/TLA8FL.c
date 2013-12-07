@@ -1,4 +1,5 @@
 #include "include/cinterface"
+#include <tgmath.h>
 typedef	TLnat4	TL_TL_priority_t;
 struct	TL_TL_ExceptionInfo {
     TLint4	quitCode;

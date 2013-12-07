@@ -115,13 +115,13 @@ int main(int argc, char* argv[])
     Language ();
     if (!MyInitializeGlobals ())
     {
-        return 0;
+        return 1;
     }
     
 #ifdef TCC
     check(argc==2,"Usage: %s code.t",argv[0]);
 #else
-    check(argc==2,"Usage: %s code.tbc",argv[0]);
+    check(argc==2,"Usage: %s bytecode.tbc",argv[0]);
 #endif
     // resource gets must be based from the bytecode file
     //check(!myStatus,"Unable to open object file %s",argv[1]);
@@ -462,7 +462,7 @@ int	EdRun_CreateByteCodeFile (FilePath pmProgramPath,FilePath pmOutputPath)
     if (!Exists(pmProgramPath))
     {
 	// Test file not found
-	printf("file not found\n");
+	fprintf(stderr, "file not found\n");
 	return 1;
     }
 
@@ -538,27 +538,24 @@ int	EdRun_CreateByteCodeFile (FilePath pmProgramPath,FilePath pmOutputPath)
 		return myMessages;
 	}
 
-/*    
+    
     if (myTuringFileDesciptor <= 0)
     {
-    	EdGUI_Message1 (NULL, 0, IDS_CREATE_EXE_FAILED_TITLE,
-    	    	        IDS_CANT_CREATE_EXE, pmProgramPath);
+        fprintf(stderr, "cannot create file\n");
         return 1;
     }
-*/
+
     myStatus = MyWriteByteCode(myProgramFileNumber,myTuringFileDesciptor,FALSE,FALSE,FALSE,FALSE);
 
-/*
-	if (myStatus != 0)
+    if (myStatus != 0)
     {
-    	EdGUI_Message1 (NULL, 0, IDS_CREATE_EXE_FAILED_TITLE,
-    	    	        IDS_UNABLE_TO_WRITE_EXE, pmProgramPath, 4);
+    	fprintf(stderr, "unable to write to file\n");
         return 1;
     }
-*/    
+
     TL_TLI_TLICL (myTuringFileDesciptor);
 
-	return 0; // no errors
+    return 0; // no errors
 } // EdRun_CreateByteCodeFile
 
 #if 0

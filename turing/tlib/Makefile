@@ -267,7 +267,7 @@ RC_SRCS               = $(tlib_exe_RC_SRCS)
 ### Tools
 
 #CC = winegcc
-CC = gcc
+CC = gcc-4.6
 CXX = wineg++
 RC = wrc
 AR = ar
@@ -289,6 +289,9 @@ $(SUBDIRS): dummy
 
 .SUFFIXES: .cpp .cxx .rc .res
 DEFINCL = $(INCLUDE_PATH) $(DEFINES) $(OPTIONS)
+
+TLA8FL.o: TLA8FL.c
+	$(CC) -c -m32 -O0 $(CEXTRA) $(DEFINCL) -o $@ $<
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(CEXTRA) $(DEFINCL) -o $@ $<

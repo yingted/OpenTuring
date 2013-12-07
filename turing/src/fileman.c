@@ -934,7 +934,7 @@ TLstring	__x295;
     TLSETL(100437);
     src = &(FileManager_fileDescriptors[TLINRANGELOW(srcFile, 1, 500, 1)]);
     TLSETL(100439);
-    if (FileManager_sameFile(&((*src).did), &(FileManager_nullFID))) {
+    if (FileManager_sameFile(&((*src).did), &(FileManager_nullFID))){
 	TLSETL(100441);
 	{
 	    {

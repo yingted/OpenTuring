@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
 #include <string.h>
 #include <fcntl.h>
 
@@ -214,6 +215,11 @@ HomeDirectory(char* user, char* home)
 void CurrentDirectory (char pmDirectory [256])
 {
     getcwd(pmDirectory, 256);
+    int len = strlen(pmDirectory);
+    if (pmDirectory[len-1] != '/') {
+        pmDirectory[len] = '/';
+        pmDirectory[len+1] = '\0';
+    }
 }
 
 
@@ -335,7 +341,7 @@ void FullPath(char path[256], char fpath[256])
 
 struct FID {
     char n[256];
-    long t;
+    int32_t t;
 };
 
 void

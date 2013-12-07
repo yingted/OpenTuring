@@ -204,3 +204,18 @@ put "successful: ",IntHashMap.Get(h,"yo",res)
 put "should be 7: ",res
 
 IntHashMap.Free(h)
+
+put ""
+put "File IO"
+
+var st : int
+open : st, "av.txt", put
+put : st, "Hello world!"
+
+close : st
+
+var sText : string := ""
+open : st, "av.txt", get
+get : st, sText
+
+put "The text is: ", sText
