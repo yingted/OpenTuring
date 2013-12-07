@@ -22,9 +22,10 @@ static TLint2	Paragrapher_outLinePtr;
 static TLint2	Paragrapher_currentLineLength;
 static TLint2	Paragrapher_lastBlank;
 
-extern TLaddressint malloc ();
+//extern TLaddressint malloc ();
 
-extern TLaddressint realloc ();
+//extern TLaddressint realloc ();
+#include <stdlib.h>
 
 extern void free ();
 static TLaddressint	Paragrapher_outBuffer;
@@ -51,7 +52,7 @@ TLint4	newSize;
     TLRESTORELF();
 }
 
-extern void memcpy ();
+//extern void memcpy ();
 
 static void Paragrapher_OutputPartialLine () {
     TLSTKCHKSLF(100068);

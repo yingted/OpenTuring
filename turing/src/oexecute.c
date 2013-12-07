@@ -473,7 +473,7 @@ extern void TL_TLB_TLBUUN ();
 
 extern void TL_TLB_TLBUNI ();
 
-extern void strcpy ();
+////extern void strcpy ();
 typedef	TLint2	Language_Execute_ExecutionError_OverflowKind;
 static TLint4	Language_Execute_ExecutionError_savedQuitCode;
 static TLstring	Language_Execute_ExecutionError_savedMessage;

@@ -766,7 +766,7 @@ struct	Language_Compile_TokRecord {
 extern struct Language_Compile_TokRecord	Language_Compile_newTok;
 extern struct Language_Compile_TokRecord	Language_Compile_oldTok;
 
-extern char *strcpy ();
+//extern char *strcpy ();
 
 void Language_Compile_CleanChar ();
 
@@ -879,7 +879,7 @@ struct Language_Compile_IdentDef	**resultId;
     Language_Compile_Scanner_HashRange	hash;
     TLBINDREG((*h), struct Language_Compile_IdentDef *);
 
-    extern char *strcpy ();
+    //extern char *strcpy ();
     TLSTKCHKSLF(100058);
     TLSETF();
     TLSETL(100058);

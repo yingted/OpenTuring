@@ -8,7 +8,7 @@ For security reasons, system calls and calls to some functions cause an error.
 
 Building
 ========
-In turing/src, `make tprolog`, optionally setting CFLAGS.
+In turing/src, `make ../bin/tprolog`, optionally setting CFLAGS.
 
 Performance tests
 =================

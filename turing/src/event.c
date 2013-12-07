@@ -432,7 +432,7 @@ extern void TL_TLB_TLBUUN ();
 
 extern void TL_TLB_TLBUNI ();
 
-extern char *strcpy ();
+//extern char *strcpy ();
 typedef	TLint2	Language_Execute_ExecutionError_OverflowKind;
 
 void Language_Execute_ExecutionError_Abort ();
