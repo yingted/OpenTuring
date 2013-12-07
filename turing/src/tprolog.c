@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include <stdio.h>
 
-#define USE_SECCOMP
+// #define USE_SECCOMP
 
 /* Self include */
 #include "tprolog.h"
@@ -50,6 +50,7 @@ extern void     Language_SetupExecutionFromObjectFile (OOTint objectFileStream,
             OOTint numArgs);
 extern void    Language_GetFileName (unsigned short fileNo, TLstring str);
 extern int    MIOTime_GetTicks (void);
+extern int Exists(char* path);
 
 /* Static constants */
 // Just a random number used to identify this timer.
@@ -99,7 +100,8 @@ static int    MyGetDirectoryFromPath (const char *pmPath,
                              char *pmDirectory);
 static void MyGetFilePathFromCmdLine(const char *cmdLine, unsigned int start, char *outFileName, char *outFilePath);
 
-int main(int argc,char*argv[]){
+int main(int argc, char* argv[])
+{
     int myStatus;
     OOTint    myNumErrors;
     int        myDelayWait;
@@ -109,20 +111,35 @@ int main(int argc,char*argv[]){
     //EdGUI_Init ();
     //EdPrint_Init ();
     TL ();
-    //FileManager ();
+    FileManager ();
+#ifndef TCC
     Language ();
+#endif
     if (!MyInitializeGlobals ())
     {
         return 0;
     }
     
-    // If the command line is "-file <filename>", then read from the file
-    // rather than reading from whatever is appended to the file.
+#ifdef TCC
+    check(argc==2,"Usage: %s code.t",argv[0]);
+#else
     check(argc==2,"Usage: %s code.tbc",argv[0]);
+#endif
     // resource gets must be based from the bytecode file
     //check(!myStatus,"Unable to open object file %s",argv[1]);
     
-    //FileManager_SetHomeDir (stStartupDirectory);
+    FileManager_SetHomeDir (stStartupDirectory);
+
+#ifdef TCC
+    
+    int len = strlen(argv[1]), i;
+    char outputPath[len + 10];
+    strcpy(outputPath, argv[1]);
+    strcat(outputPath, "bc");
+    return EdRun_CreateByteCodeFile(argv[1], outputPath);
+        
+
+#else
 
         if(!MyInitializeRunFromByteCode(argv[1]))
             return FALSE; // initialize failed
@@ -223,6 +240,7 @@ int main(int argc,char*argv[]){
 	    myErrorPathName, stErrorPtr -> text);
 	return 1;
     }
+#endif
 #ifdef USE_SECCOMP
     seccomp_release(ctx);
 #endif
@@ -344,6 +362,206 @@ BOOL    EdRun_KillRunningProgramAndQuit (void)
 
     return stTuringProgramRunning;
 } // EdRun_KillRunningProgramAndQuit
+
+static int	MyWriteByteCode (FileNoType pmProgramFileNo, long pmTuringFileDesciptor, 
+			 BOOL pmCloseWindowsOnTerminate, 
+			 BOOL pmDisplayRunWithArgs, BOOL pmCenterOutputWindow, 
+			 BOOL pmStopUserClose)
+{
+	OOTint			myStatus = -1;
+	TuringErrorPtr	myError;
+	int			myErrors;
+	//
+    // First write the header.
+    //
+    TL_TLI_TLIWR (OBJECT_FILE_HEADER, sizeof (OBJECT_FILE_HEADER), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+
+    //
+    // Then write TProlog specific preferences      
+    //
+    TL_TLI_TLIWR (&pmCloseWindowsOnTerminate, sizeof (BOOL), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+    TL_TLI_TLIWR (&pmDisplayRunWithArgs, sizeof (BOOL), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+    TL_TLI_TLIWR (&pmCenterOutputWindow, sizeof (BOOL), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+    TL_TLI_TLIWR (&pmStopUserClose, sizeof (BOOL), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+    
+    // 
+    // Then write the environment preferences
+    //
+    TL_TLI_TLIWR (&gProperties, sizeof (Properties), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+    	return 1;
+    }
+    
+    //
+    // Then write another header (just to make certain we're synced)
+    //
+    TL_TLI_TLIWR (OBJECT_FILE_HEADER, sizeof (OBJECT_FILE_HEADER), &myStatus,
+    		  pmTuringFileDesciptor);
+    if (myStatus != 0)
+    {
+        return 1;
+    }
+
+    // 
+    // Then write the object files
+    //
+    Language_Reset ();
+    Language_WriteObjectFile ("", pmProgramFileNo, &myError, &myErrors,
+    	pmTuringFileDesciptor);
+
+	return 0;
+}
+
+/************************************************************************/
+/* EdRun_CreateByteCodeFile							*/
+/* Creates a bytecode file to be read by the prolog with the -file option. */
+/* Returns an error code */
+/************************************************************************/
+int	EdRun_CreateByteCodeFile (FilePath pmProgramPath,FilePath pmOutputPath)
+{
+    long		myTuringFileDesciptor;
+	FileNoType	myProgramFileNumber;
+
+	TextHandleType	myDummyTuringTextHandle;
+    SizePtrType		myDummyTuringSizePtr;
+    ResultCodeType	myResult;
+
+    OOTint			myStatus = -1;
+	FilePath mySourceDirectory;
+
+	TuringErrorPtr	myError;   
+	OOTint myErrors;
+
+	// Make certain the test file exists
+
+    if (!Exists(pmProgramPath))
+    {
+	// Test file not found
+	printf("file not found\n");
+	return 1;
+    }
+
+    FileManager_OpenNamedHandle (pmProgramPath, &myProgramFileNumber, 
+    				     &myDummyTuringTextHandle, &myDummyTuringSizePtr,
+    				     &myResult);
+
+/*    
+    // Set the base source directory to be the directory 
+    // in which the source file was located.
+    EdFile_GetDirectoryFromPath (pmProgramPath, mySourceDirectory);
+    FileManager_ChangeDirectory ((OOTstring) mySourceDirectory);
+*/
+
+    // Compile the program
+    Language_CompileProgram ("", myProgramFileNumber, &myError, &myErrors);
+
+	// Open the executable file
+    TL_TLI_TLIOF (16, pmOutputPath, &myTuringFileDesciptor);
+    
+    if (myError != NULL)
+    {
+		int		myMessages = 0;
+		char	msgBuffer[1024];
+		
+		// error header
+		TL_TLI_TLIWR (OBJECT_FILE_ERROR_HEADER, sizeof (OBJECT_FILE_ERROR_HEADER), &myStatus,
+    		  myTuringFileDesciptor);
+		if (myStatus != 0)
+		{
+    		return 1;
+		}
+
+		while (myError != NULL)
+		{
+			WORD	myErrorTuringFileNo;
+			FilePath	myErrorPathName;
+			SrcPosition	*mySrc;
+	    
+			myErrorTuringFileNo = myError -> srcPos.fileNo;
+			FileManager_FileName (myErrorTuringFileNo, myErrorPathName);
+			mySrc = &(myError -> srcPos);
+	    
+			if (mySrc -> tokLen > 0)
+			{
+				sprintf (msgBuffer,"\n%d %d %d %s",
+					mySrc -> lineNo, mySrc -> linePos + 1,
+					mySrc -> linePos + 1 + mySrc -> tokLen, 
+					myError -> text);
+			}
+			else
+			{
+				sprintf (msgBuffer, 
+					"\r\nLine %d [%d] of (%s): %s",
+					mySrc -> lineNo, mySrc -> linePos + 1,
+					myErrorPathName, myError -> text);
+			}
+
+			TL_TLI_TLIWR (msgBuffer, strlen(msgBuffer), &myStatus,
+    		  myTuringFileDesciptor);
+			if (myStatus != 0)
+			{
+    			return 1;
+			}
+
+			myError = myError -> next;
+			myMessages++;
+		}
+
+		// close the file before returning
+		TL_TLI_TLICL (myTuringFileDesciptor);
+
+		return myMessages;
+	}
+
+/*    
+    if (myTuringFileDesciptor <= 0)
+    {
+    	EdGUI_Message1 (NULL, 0, IDS_CREATE_EXE_FAILED_TITLE,
+    	    	        IDS_CANT_CREATE_EXE, pmProgramPath);
+        return 1;
+    }
+*/
+    myStatus = MyWriteByteCode(myProgramFileNumber,myTuringFileDesciptor,FALSE,FALSE,FALSE,FALSE);
+
+/*
+	if (myStatus != 0)
+    {
+    	EdGUI_Message1 (NULL, 0, IDS_CREATE_EXE_FAILED_TITLE,
+    	    	        IDS_UNABLE_TO_WRITE_EXE, pmProgramPath, 4);
+        return 1;
+    }
+*/    
+    TL_TLI_TLICL (myTuringFileDesciptor);
+
+	return 0; // no errors
+} // EdRun_CreateByteCodeFile
 
 #if 0
 /* Static callback procedures */

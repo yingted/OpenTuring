@@ -1733,7 +1733,9 @@ extern void Language_Compile_ScanUnit ();
 extern void Language_Compile_PreScan_VerifyConfiguration ();
 
 extern void Language_Compile_PreScan_VerifyPredefList ();
-struct Language_Compile_BlockDef	*Language_Compile_rootBlock;
+
+struct Language_Compile_BlockDef __rootBlock;
+struct Language_Compile_BlockDef	*Language_Compile_rootBlock = &__rootBlock;
 struct Language_Compile_BlockDef	*Language_Compile_blockStack;
 struct Language_Compile_SymbolDef	*Language_Compile_compilingSymbol;
 struct Language_Compile_SymbolDef	*Language_Compile_monitorSymbol;

@@ -560,7 +560,7 @@ static void Language_Initialize () {
 	Language_Compile_Initialize();
     };
     TLSETL(100231);
-    Language_Execute_RecoverAllMemory();
+    // Language_Execute_RecoverAllMemory();
     TLINCL();
     Language_UnitManager_StartNewProgram();
     Language_mainUnitPtr = (void *) 0;
@@ -1185,7 +1185,7 @@ TLint4	numArgs;
 		if ((unsigned long) globalArea != 0) {
 		    TLint4	globalSize;
 
-		    extern void memset ();
+		    //extern void memset ();
 		    TLSETL(100734);
 		    globalSize = Language_UnitManager_GlobalSize(unitPtr);
 		    TLINCL();
@@ -1497,7 +1497,6 @@ void Language () {
 
 //void Language_GetFileName ();
 typedef	TLstring	__x1108[21];
-extern void puts (const char *msg);
 typedef	TLstring	__x869[21];
 typedef	TLnat2	Language_LoadObjectFile_FileNoType;
 typedef long TLint4;
@@ -1886,7 +1885,6 @@ TLboolean	debug;
 	    };
 	} else {
 
-	    extern void memset ();
 	    TLSETL(1300170);
 	    globalArea = (TLaddressint) malloc((TLint4) globalSize);
 	    TLINCL();

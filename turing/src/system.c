@@ -1059,5 +1059,7 @@ TLaddressint	sp;
     time(&((* (TLint4 *) ((* (TLaddressint *) sp)))));
 }
 
+/*
 void Language_Execute_System () {
 }
+*/

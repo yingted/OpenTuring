@@ -1,13 +1,12 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <fcntl.h>
-#include <io.h>
-#ifdef WIN32
-#include <windows.h>
-#endif
+
 
 #define CTRLZ	26
 
@@ -31,7 +30,7 @@ extern int gFileManagerIgnoreFileOperation;
 ** of the support files.
 */
 
-extern void vaOkMsgBox(char *str, ...);
+// extern void vaOkMsgBox(char *str, ...);
 
 void NullFile (char **pmTextHandle, long *pmTextSize);
 
@@ -45,7 +44,7 @@ void ReadOOTFile (char *pmFileName, char **pmTextHandle, long *pmTextSize,
 		  short *pmResult)
 {
     struct stat statBuf;
-    int fd;
+    FILE* fd = NULL;
     char *src, *dst, *last;
 
     if (gFileManagerIgnoreFileOperation)
@@ -62,29 +61,29 @@ void ReadOOTFile (char *pmFileName, char **pmTextHandle, long *pmTextSize,
 	return;
     }
 
-    if ((fd=open (pmFileName, O_RDONLY|O_BINARY)) < 0 )
+    if (!(fd=fopen(pmFileName, "rb")))
     {
 	*pmResult = ResultCode_NoRead;
 	return;
     }
 
-    if ((*pmTextHandle = malloc (statBuf.st_size+1)) == NULL )
+    if ((*pmTextHandle = malloc (statBuf.st_size+1)) == NULL)
     {
-	(void) close(fd);
+	fclose(fd);
 	*pmResult = ResultCode_NoSpace;
 	return;
     }
 
-    if (read (fd, *pmTextHandle, statBuf.st_size ) != statBuf.st_size )
+    if (fread (*pmTextHandle, 1, statBuf.st_size, fd) != statBuf.st_size)
     {
-	(void) close(fd);
+	fclose(fd);
 	free (*pmTextHandle);
 	*pmTextHandle = NULL;
 	*pmResult = ResultCode_NoRead;
 	return;
     }
     
-    (void) close(fd);
+    fclose(fd);
 
     /* Find first carriage return or line feed */
 
@@ -135,53 +134,30 @@ void NullFile (char **pmTextHandle, long *pmTextSize)
 void SaveFile (char *pmfileName, char *pmTextHandle, long pmTextSize, 
 	       short *pmResult)
 {
-    HANDLE	myHandle;
-    DWORD	myNumBytesWritten;
+    FILE* fd = NULL;
 
     if (gFileManagerIgnoreFileOperation)
     {
     	*pmResult = 0;
     	return;
     }
+
+    fd = fopen(pmfileName, "a");
     
-    myHandle = CreateFile (pmfileName, GENERIC_WRITE, 0, NULL,
-    	OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (myHandle == (HANDLE) INVALID_HANDLE_VALUE)
+    if (!fd)
     {
 	*pmResult = ResultCode_NoWrite;
 	return;
     }
 
-    if (!SetEndOfFile (myHandle))
+    if (fwrite(pmTextHandle, sizeof(char), pmTextSize-1, fd) != pmTextSize-1)
     {
-	CloseHandle (myHandle);
+	fclose(fd);
 	*pmResult = ResultCode_NoWrite;
 	return;
     }
 
-    if (!WriteFile (myHandle, pmTextHandle, pmTextSize - 1, 
-    		    &myNumBytesWritten, NULL))
-    {
-	CloseHandle (myHandle);
-	*pmResult = ResultCode_NoWrite;
-	return;
-    }
-    
-    if (myNumBytesWritten != (DWORD) pmTextSize - 1)
-    {
-	CloseHandle (myHandle);
-	*pmResult = ResultCode_NoWrite;
-	return;
-    }
-    
-    if (!FlushFileBuffers (myHandle))
-    {
-	CloseHandle (myHandle);
-	*pmResult = ResultCode_NoWrite;
-	return;
-    }
-    
-    if (!CloseHandle (myHandle))
+    if (fclose(fd))
     {
 	*pmResult = ResultCode_NoWrite;
 	return;
@@ -207,8 +183,7 @@ CreateFile(fileName)
 */
 
 void
-RemoveFile(fileName)
-    char *fileName;
+RemoveFile(char* fileName)
 {
     (void) unlink(fileName);
 }
@@ -229,8 +204,7 @@ void FreeFile (char **textHandle)
 
 
 void
-HomeDirectory(user,home)
-    char *user, *home;
+HomeDirectory(char* user, char* home)
 {
     home[0] = '\0';
 }
@@ -239,36 +213,17 @@ HomeDirectory(user,home)
 // Rewritten by Tom West (Oct 2000)
 void CurrentDirectory (char pmDirectory [256])
 {
-    DWORD	myLen;
-
-    myLen = getcwd (pmDirectory,256);
-    if ((myLen == 0) || (myLen > 254))
-    {
-    	pmDirectory [0] = 0;
-    	return;
-    }
-
-    // Add a terminating "\" if necessary
-    if (pmDirectory [myLen - 1] != '\\') 
-    {
-	pmDirectory [myLen] = '\\';
-	pmDirectory [myLen + 1] = '\0';
-    }
+    getcwd(pmDirectory, 256);
 }
 
 
 void
-TempDirectory(path)
-    char path[256];
+TempDirectory(char path[256])
 {
     char *pnt;
     int len;
 
-    #ifdef __WINDOWS_386__
-        pnt = getenv("WINOOTTMP");
-    #else
-        pnt = getenv("OOTTMP");
-    #endif
+    pnt = getenv("TMPDIR");
 
     if (pnt == NULL)
 	pnt = getenv("TMP");
@@ -277,41 +232,21 @@ TempDirectory(path)
 	pnt = getenv("TEMP");
 
     if (pnt == NULL || strlen(pnt) > 255)
-	/* No useful environment variables, so use root of current drive */
-	(void) _fullpath(path, "\\", 255);
+	strcpy(path, "/tmp");
     else
 	(void) strcpy(path, pnt);
 
     len = strlen(path);
-    if (path[len-1] != '\\') {
-	path[len] = '\\';
+    if (path[len-1] != '/') {
+	path[len] = '/';
 	path[len+1] = '\0';
     }
 }
 
 
-// Rewritten by Tom West (Oct 2000)
 void IncludeDirectory (char pmDirectory [256])
 {
-    DWORD	myLen;
-    
-    myLen = GetEnvironmentVariable ("TURINGDIR", pmDirectory, 254);
-    if ((myLen == 0) || (myLen > 254))
-    {
-    	myLen = getcwd (pmDirectory,255);
-    	if ((myLen == 0) || (myLen > 255))
-    	{
-    	    pmDirectory [0] = 0;
-    	    return;
-    	}
-    }
-
-    // Add a terminating "\" if necessary
-    if (pmDirectory [myLen - 1] != '\\') 
-    {
-	pmDirectory [myLen] = '\\';
-	pmDirectory [myLen + 1] = '\0';
-    }
+    pmDirectory[0] = '\0';
 }
 
 void
@@ -338,131 +273,53 @@ Exists(path)
 // Rewritten by Tom West (Oct 2000)
 char CanRead (char *pmPathName)
 {
-    HANDLE	myFile;
 
-    if ((pmPathName == NULL) || (pmPathName [0] == 0))
+    if ((pmPathName == NULL) || (!pmPathName [0]))
     {
-    	return FALSE;
+    	return 0;
     }
-        
-    // Open the file if it already exists
-    myFile = CreateFile (pmPathName, GENERIC_READ, 
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-    	OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    	
-    // If call failed, then return FALSE
-    if (myFile == (HANDLE) INVALID_HANDLE_VALUE)
-    {
-    	return FALSE;
-    }
-    
-    CloseHandle (myFile);
-	
-    return TRUE;
+    return access(pmPathName, R_OK) != -1;
 }
 
 
 // Rewritten by Tom West (Oct 2000)
 char CanReadWrite (char *pmPathName)
 {
-    HANDLE	myFile;
-
     if ((pmPathName == NULL) || (pmPathName [0] == 0))
     {
-    	return FALSE;
-    }
-        
-    // Open the file if it already exists
-    myFile = CreateFile (pmPathName, GENERIC_READ | GENERIC_WRITE, 
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-    	OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    	
-    // If call failed, then return FALSE
-    if (myFile == (HANDLE) INVALID_HANDLE_VALUE)
-    {
-    	return FALSE;
-    }
-    
-    CloseHandle (myFile);
-	
-    return TRUE;
+    	return 0;
+    }	
+    return access(pmPathName, R_OK|W_OK) != -1;
 }
 
 
 // Rewritten by Tom West (Oct 2000)
 char CanCD (char *pmPathName)
 {
-    DWORD	myAttributes;
-    
-    myAttributes = GetFileAttributes (pmPathName);
-    if ((myAttributes == -1) || 
-    	((myAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0))
-    {
-    	return FALSE;
-    }
-    
-    return TRUE;    	
+    struct stat sb;
+    if (stat(pmPathName, &sb) == -1) return 0;
+    return S_ISDIR(sb.st_mode);
 }
 
 
 // Rewritten by Tom West (Oct 2000)
 char IsRegularFile (char *pmPathName)
 {
-    DWORD	myAttributes;
-    
-    myAttributes = GetFileAttributes (pmPathName);
-    if ((myAttributes == -1) || 
-    	((myAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
-    {
-    	return FALSE;
-    }
-    
-    return TRUE;    	
+    struct stat sb;
+    if (stat(pmPathName, &sb) == -1) return 0;
+    return S_ISREG(sb.st_mode);
 }
 
 
 // Rewritten by Tom West (Oct 2000)
 char IsSamePath (char *pmPathName0, char *pmPathName1)
 {
-    return (char) (_stricmp (pmPathName0, pmPathName1) == 0);
+    return (char) (strcmp(pmPathName0, pmPathName1) == 0);
 }
 
 
-static void ConvertPath(path)
-    char *path;
+static void ConvertPath(char* path)
 {
-    char *begp  = path+3;    /* ie. past the drive letter and colon */
-    char *endp  = path+strlen(path);
-    char *cpath = begp;
-
-    char *dotp, *tmpp;
-
-    while( (dotp = strstr(cpath, "..")) != NULL ) {
-	/* While there are ..'s in the path */
-
-	if (dotp == begp) {
-	    /* ..'s are at beginning of absolute path, so just remove them */
-	    memmove(begp, dotp+3, endp-(dotp+2));
-	}
-	else {
-	    /* Backup over previous directory */
-	    tmpp = dotp-2;
-	    while(*tmpp != '\\')
-		tmpp--;
-
-	    if (dotp == endp-2) {
-		/* End of path */
-		*tmpp = '\0';
-		 endp = tmpp;
-		 cpath = endp;
-	    }
-	    else {
-	        memmove(tmpp+1, dotp+3, endp-(dotp+2));
-		endp = path+strlen(path);
-	        cpath = tmpp+1;
-	    }
-	}
-    }
 }
 
 
@@ -470,32 +327,9 @@ static void ConvertPath(path)
  *
  */
 
-void FullPath(path, fpath)
-    char path[256];
-    char fpath[256];
+void FullPath(char path[256], char fpath[256])
 {
-#ifdef WIN32
-    char *dummy;
-    GetFullPathName (path, 255, fpath, &dummy);
-#else
-    int len = strlen(path);
-
-
-    if (len > 3 && path[len-1] == '\\') {
-        char tpath[256];
-
-	strcpy(tpath, path);
-        tpath[len-1] = '\0';
-        _fullpath(fpath, tpath, 255);
-        fpath[strlen(fpath)] = '\\';
-        fpath[strlen(fpath)+1] = '\0';
-    }
-    else
-        _fullpath(fpath, path, 255);
-
-    if (strstr(fpath, "..") != NULL)
-	ConvertPath(fpath);
-#endif
+    realpath(path, fpath);
 }
 
 
@@ -505,9 +339,7 @@ struct FID {
 };
 
 void
-GetFID( file, fid_p )
-    char *file;
-    struct FID *fid_p;
+GetFID(char* file, struct FID* fid_p )
 {
     struct stat statBuf;
 
@@ -516,14 +348,7 @@ GetFID( file, fid_p )
 	fid_p->t = 0;
     }
     else {
-#ifdef WIN32
-	char *dummy;
-	GetFullPathName (file, 255, fid_p->n, &dummy);
-#else
-        _fullpath(fid_p->n, file, 255);
-        if (strstr(fid_p->n, "..") != NULL)
-	    ConvertPath(fid_p->n);
-#endif
+        realpath(file, fid_p->n);
     	fid_p->t = statBuf.st_mtime;
     }
 }

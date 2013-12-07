@@ -173,7 +173,7 @@ static FileManager___x451	FileManager_textDescriptors;
 typedef	struct FileManager_FileDef	FileManager___x452[500];
 static FileManager___x452	FileManager_fileDescriptors;
 
-extern void OkMsgBox ();
+// extern void OkMsgBox ();
 static TLstring	FileManager_TempDir;
 typedef	TLstring	FileManager___x454[5];
 static FileManager___x454	FileManager_prefix = 
@@ -756,7 +756,6 @@ FileManager_FileNoType	srcFile;
 TLstring	__x295;
 {
 
-    extern void strlwr ();
     TLstring	f;
     TLint4	lf;
     TLBINDREG((*src), struct FileManager_FileDef);
@@ -2092,7 +2091,7 @@ TLstring	path;
 	{
 	    TLstring	__x581;
 	    TL_TLS_TLSCAT("Couldn\'t change to: ", ndir, __x581);
-	    OkMsgBox(__x581);
+	    //OkMsgBox(__x581);
 	};
     };
     TLRESTORELF();
@@ -2146,7 +2145,7 @@ TLstring	path;
 	{
 	    TLstring	__x585;
 	    TL_TLS_TLSCAT("Couldn\'t change to: ", ndir, __x585);
-	    OkMsgBox(__x585);
+	    //OkMsgBox(__x585);
 	};
     };
     TLRESTORELF();
@@ -2788,7 +2787,7 @@ TLstring	path;
 	    {
 		TLstring	__x611;
 		TL_TLS_TLSCAT(__x612, "\'", __x611);
-		OkMsgBox(__x611);
+		//OkMsgBox(__x611);
 	    };
 	};
     };
@@ -2833,7 +2832,7 @@ TLstring	path;
 	    {
 		TLstring	__x616;
 		TL_TLS_TLSCAT(__x617, "\'", __x616);
-		OkMsgBox(__x616);
+		//OkMsgBox(__x616);
 	    };
 	};
     };
@@ -2878,7 +2877,7 @@ TLstring	path;
 	    {
 		TLstring	__x621;
 		TL_TLS_TLSCAT(__x622, "\'", __x621);
-		OkMsgBox(__x621);
+		//OkMsgBox(__x621);
 	    };
 	};
     };
