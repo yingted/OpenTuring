@@ -437,7 +437,9 @@ TLstring	__x270;
 	TLSETL(100286);
 	{
 	    TLchar	__x478[2];
-	    if ((i == 1) || ((TL_TLS_TLSBX(__x478, (TLint4) i, f), strcmp(__x478, "\\") == 0))) {
+	    if ((i == 1)
+		|| ((TL_TLS_TLSBX(__x478, (TLint4) i, f), strcmp(__x478, "\\") == 0))
+		|| ((TL_TLS_TLSBX(__x478, (TLint4) i, f), strcmp(__x478, "/" ) == 0))) {
 		break;
 	    };
 	};
@@ -640,7 +642,7 @@ TLstring	__x282;
 	{
 	    TLchar	__x496[2];
 	    TL_TLS_TLSBS(__x496, (TLint4) 0, base);
-	    if (strcmp(__x496, "\\") == 0) {
+	    if (strcmp(__x496, "\\") == 0 || strcmp(__x496, "/") == 0) {
 		TLSETL(100352);
 		{
 		    {
@@ -663,7 +665,7 @@ TLstring	__x282;
 			FileManager_convertName(name, __x501);
 			{
 			    TLstring	__x500;
-			    TL_TLS_TLSCAT(base, "\\", __x500);
+			    TL_TLS_TLSCAT(base, "/", __x500);
 			    {
 				TLstring	__x499;
 				TL_TLS_TLSCAT(__x500, __x501, __x499);
@@ -703,7 +705,7 @@ TLstring	__x288;
 		    TLSETL(100369);
 		    {
 			TLchar	__x504[2];
-			if ((lf > lp) && ((TL_TLS_TLSBX(__x504, (TLint4) (lp + 1), f), strcmp(__x504, "\\") == 0))) {
+			if ((lf > lp) && ((TL_TLS_TLSBX(__x504, (TLint4) (lp + 1), f), strcmp(__x504, "\\") == 0 ||  strcmp(__x504, "/") == 0))) {
 			    TLSETL(100370);
 			    {
 				{
@@ -786,7 +788,7 @@ TLstring	__x295;
 		{
 		    TLchar	__x510[2];
 		    TL_TLS_TLSBX(__x510, (TLint4) i, f);
-		    if (strcmp(__x510, "/") == 0) {
+		    if (strcmp(__x510, "\\") == 0) {
 			TLSETL(100401);
 			{
 			    TLstring	__x514;
@@ -796,7 +798,7 @@ TLstring	__x295;
 				TL_TLS_TLSBXX(__x513, (TLint4) (i - 1), (TLint4) 1, f);
 				{
 				    TLstring	__x512;
-				    TL_TLS_TLSCAT(__x513, "\\", __x512);
+				    TL_TLS_TLSCAT(__x513, "/", __x512);
 				    {
 					TLstring	__x511;
 					TL_TLS_TLSCAT(__x512, __x514, __x511);
@@ -986,7 +988,7 @@ TLstring	__x295;
 			FileManager_baseDir((*src).name, __x539);
 			{
 			    TLstring	__x538;
-			    TL_TLS_TLSCAT(__x539, "\\", __x538);
+			    TL_TLS_TLSCAT(__x539, "/", __x538);
 			    {
 				TLstring	__x537;
 				TL_TLS_TLSCAT(__x538, f, __x537);
@@ -1043,7 +1045,7 @@ FileManager_FileNoType	*fileNo;
     {
 	TLchar	__x543[2];
 	TL_TLS_TLSBX(__x543, (TLint4) 3, name);
-	TLPRE ((strcmp(__x543, "\\") == 0) || FileManager_isUNCPath(name));
+	TLPRE ((strcmp(__x543, "\\") == 0) || (strcmp(__x543, "/") == 0) || FileManager_isUNCPath(name));
     };
     TLSETL(100473);
     {
@@ -1244,7 +1246,7 @@ FileManager_ResultCode	*rc;
     {
 	TLchar	__x550[2];
 	TL_TLS_TLSBX(__x550, (TLint4) 3, name);
-	TLPRE ((strcmp(__x550, "\\") == 0) || FileManager_isUNCPath(name));
+	TLPRE ((strcmp(__x550, "\\") == 0) || (strcmp(__x550, "/") == 0) || FileManager_isUNCPath(name));
     };
     TLSETL(100618);
     (*fileNo) = 0;
@@ -2074,11 +2076,11 @@ TLstring	path;
 	{
 	    TLchar	__x579[2];
 	    TL_TLS_TLSBS(__x579, (TLint4) 0, ndir);
-	    if (strcmp(__x579, "\\") != 0) {
+	    if (strcmp(__x579, "\\") != 0 && strcmp(__x579, "/") != 0) {
 		TLSETL(101164);
 		{
 		    TLstring	__x580;
-		    TL_TLS_TLSCAT(ndir, "\\", __x580);
+		    TL_TLS_TLSCAT(ndir, "/", __x580);
 		    TLSTRASS(255, FileManager_wd, __x580);
 		};
 	    } else {
@@ -2128,11 +2130,11 @@ TLstring	path;
 	{
 	    TLchar	__x583[2];
 	    TL_TLS_TLSBS(__x583, (TLint4) 0, ndir);
-	    if (strcmp(__x583, "\\") != 0) {
+	    if (strcmp(__x583, "\\") != 0 && strcmp(__x583, "/") != 0) {
 		TLSETL(101190);
 		{
 		    TLstring	__x584;
-		    TL_TLS_TLSCAT(ndir, "\\", __x584);
+		    TL_TLS_TLSCAT(ndir, "/", __x584);
 		    TLSTRASS(255, FileManager_ed, __x584);
 		};
 	    } else {
@@ -2221,9 +2223,9 @@ TLstring	__x98;
     {
 	TLchar	__x590[2];
 	TL_TLS_TLSBS(__x590, (TLint4) 0, tpath);
-	if (strcmp(__x590, "\\") != 0) {
+	if (strcmp(__x590, "\\") != 0 && strcmp(__x590, "/") != 0) {
 	    TLSETL(101232);
-	    TLSTRCATASS(tpath, "\\", 255);
+	    TLSTRCATASS(tpath, "/", 255);
 	};
     };
     TLSETL(101235);
@@ -2761,11 +2763,11 @@ TLstring	path;
 	{
 	    TLchar	__x608[2];
 	    TL_TLS_TLSBS(__x608, (TLint4) 0, ndir);
-	    if (strcmp(__x608, "\\") != 0) {
+	    if (strcmp(__x608, "\\") != 0 && strcmp(__x608, "/") != 0) {
 		TLSETL(101513);
 		{
 		    TLstring	__x609;
-		    TL_TLS_TLSCAT(ndir, "\\", __x609);
+		    TL_TLS_TLSCAT(ndir, "/", __x609);
 		    TLSTRASS(255, FileManager_Dirs[0], __x609);
 		};
 	    } else {
@@ -2776,7 +2778,7 @@ TLstring	path;
 	TLSETL(101517);
 	{
 	    TLstring	__x610;
-	    TL_TLS_TLSCAT(FileManager_Dirs[0], "help\\", __x610);
+	    TL_TLS_TLSCAT(FileManager_Dirs[0], "help/", __x610);
 	    TLSTRASS(255, FileManager_Dirs[3], __x610);
 	};
     } else {
@@ -2812,11 +2814,11 @@ TLstring	path;
 	{
 	    TLchar	__x614[2];
 	    TL_TLS_TLSBS(__x614, (TLint4) 0, ndir);
-	    if (strcmp(__x614, "\\") != 0) {
+	    if (strcmp(__x614, "\\") != 0 && strcmp(__x614, "/") != 0) {
 		TLSETL(101532);
 		{
 		    TLstring	__x615;
-		    TL_TLS_TLSCAT(ndir, "\\", __x615);
+		    TL_TLS_TLSCAT(ndir, "/", __x615);
 		    TLSTRASS(255, FileManager_Dirs[1], __x615);
 		};
 	    } else {
@@ -2857,11 +2859,11 @@ TLstring	path;
 	{
 	    TLchar	__x619[2];
 	    TL_TLS_TLSBS(__x619, (TLint4) 0, ndir);
-	    if (strcmp(__x619, "\\") != 0) {
+	    if (strcmp(__x619, "\\") != 0 && strcmp(__x619, "/") != 0) {
 		TLSETL(101549);
 		{
 		    TLstring	__x620;
-		    TL_TLS_TLSCAT(ndir, "\\", __x620);
+		    TL_TLS_TLSCAT(ndir, "/", __x620);
 		    TLSTRASS(255, FileManager_Dirs[2], __x620);
 		};
 	    } else {
