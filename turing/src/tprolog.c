@@ -111,11 +111,11 @@ int main(int argc, char* argv[])
     //EdGUI_Init ();
     //EdPrint_Init ();
 
-    #ifdef TCC
-        check(argc==2||argc==3,"Usage: %s code.t [includedir]",argv[0]);
-    #else
-        check(argc==2||argc==3,"Usage: %s bytecode.tbc [includedir]",argv[0]);
-    #endif
+#ifdef TCC
+    check(argc==2||argc==3,"Usage: %s code.t [includedir]",argv[0]);
+#else
+    check(argc==2||argc==3,"Usage: %s bytecode.tbc [includedir]",argv[0]);
+#endif
 
     TL ();
     FileManager ();
@@ -238,9 +238,9 @@ int main(int argc, char* argv[])
 	    myErrorPathName, stErrorPtr -> text);
 	return 1;
     }
-#endif
 #ifdef USE_SECCOMP
     seccomp_release(ctx);
+#endif
 #endif
     return 0;
 } // WinMain
@@ -512,14 +512,21 @@ int	EdRun_CreateByteCodeFile (FilePath pmProgramPath,FilePath pmOutputPath)
 					mySrc -> lineNo, mySrc -> linePos + 1,
 					mySrc -> linePos + 1 + mySrc -> tokLen, 
 					myError -> text);
+                                fprintf(stderr, "Compile error on line %d [%d-%d]: %s\n",
+                                        mySrc -> lineNo, mySrc -> linePos + 1,
+					mySrc -> linePos + 1 + mySrc -> tokLen,
+                                        myError -> text);
 			}
 			else
 			{
 				sprintf (msgBuffer, 
-					"\r\nLine %d [%d] of (%s): %s",
+					"\nLine %d [%d] of (%s): %s",
 					mySrc -> lineNo, mySrc -> linePos + 1,
 					myErrorPathName, myError -> text);
+                                fprintf(stderr, "Compile error on line %d [%d]: %s\n",
+                                        mySrc -> lineNo, mySrc -> linePos + 1, myError->text);
 			}
+
 
 			TL_TLI_TLIWR (msgBuffer, strlen(msgBuffer), &myStatus,
     		  myTuringFileDesciptor);
