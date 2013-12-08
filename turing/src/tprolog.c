@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
                   gProperties.runConsoleTextRows,     // Run window rows
                   gProperties.runConsoleTextCols,     // Run window columns
                   gProperties.runConsoleFullScreen,
-              (COLOR) RGB (0, 0, 132),
+              10,
               FALSE,    // Allow/Forbid Sys.Exec
               FALSE,        // Allow/Forbid Music
               0,    // Set PP I/O Port

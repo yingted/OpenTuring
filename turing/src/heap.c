@@ -580,11 +580,11 @@ struct	Language_Execute_Heap_MallocTemplate2 {
 };
 static struct Language_Execute_Heap_HeapReference	Language_Execute_Heap_rootHeapRef;
 
-extern TLaddressint malloc ();
 
-extern TLaddressint realloc ();
 
-extern void free ();
+
+
+
 
 static void Language_Execute_Heap_CorruptionCheck (memPtr)
 TLaddressint	memPtr;

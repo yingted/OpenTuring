@@ -293,11 +293,14 @@ void Language_UnitManager_SuccessfulCompile ();
 
 TLaddressint Language_UnitManager_SymbolTable ();
 
-extern TLaddressint malloc ();
+/*
 
-extern TLaddressint realloc ();
 
-extern void free ();
+
+
+
+*/
+
 struct	Language_UnitManager_DependDef {
     struct Language_UnitManager_DependDef	*next;
     struct Language_UnitManager_UnitDef	*unitPtr;

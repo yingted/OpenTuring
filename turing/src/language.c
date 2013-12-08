@@ -496,11 +496,13 @@ extern void Language_Execute_DumpThreadList ();
 
 extern void Language_Execute_UnitInitState ();
 
-extern TLaddressint malloc ();
+/*
 
-extern TLaddressint realloc ();
 
-extern void free ();
+
+
+
+*/
 
 void Language_Reset () {
     TLSTKCHKSLF(100171);
@@ -1674,7 +1676,7 @@ TLboolean	debug;
     TLSETF();
     TLSETL(1300086);
     for(;;) {
-	TLint4	tableSize;
+	TLint4	tableSize = 0;
 	TLSETL(1300086);
 	if (TL_TLI_TLIEOF((TLint4) objectFileStream)) {
 	    break;
@@ -1767,7 +1769,7 @@ TLboolean	debug;
 	    };
 	} else {
 	    TLSETL(1300128);
-	    codeTable = (TLaddressint) malloc((TLint4) tableSize);
+	    codeTable = (TLaddressint) malloc(tableSize);
 	    TLINCL();
 	    if ((unsigned long) codeTable == 0) {
 		TLSETL(1300132);

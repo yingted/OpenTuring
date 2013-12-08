@@ -22,12 +22,12 @@ static TLint2	Paragrapher_outLinePtr;
 static TLint2	Paragrapher_currentLineLength;
 static TLint2	Paragrapher_lastBlank;
 
-//extern TLaddressint malloc ();
+//
 
-//extern TLaddressint realloc ();
+//
 #include <stdlib.h>
 
-extern void free ();
+//
 static TLaddressint	Paragrapher_outBuffer;
 static TLint4	Paragrapher_outBufferPtr;
 static TLint4	Paragrapher_outBufferSize;

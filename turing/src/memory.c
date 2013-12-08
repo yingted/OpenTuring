@@ -435,11 +435,7 @@ extern void Language_Compile_DumpArrayValues ();
 
 extern void Language_Compile_SetObjectFileStream ();
 
-extern TLaddressint malloc ();
 
-extern TLaddressint realloc ();
-
-extern void free ();
 typedef	TLnat1	Language_Compile_Tok;
 typedef	TLchar	Language_Compile___x1994[16];
 struct	Language_Compile___x1993 {

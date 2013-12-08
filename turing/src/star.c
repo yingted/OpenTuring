@@ -6,9 +6,9 @@ void Star_getToken ();
 
 void Star_finalize ();
 
-extern TLaddressint malloc ();
 
-extern void free ();
+
+
 typedef	TLaddressint	Star_commentListPtr;
 struct	Star_commentType {
     TLstring	comment;

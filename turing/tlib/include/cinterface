@@ -42,9 +42,9 @@ struct	TLCOND {
 
 /* the size of this must be kept current with %monitor */
 struct	TLMON {
-    long		mQLock;
-    long		entryParameter;
-    long		monitorPriority;
+    int32_t		mQLock;
+    int32_t		entryParameter;
+    int32_t		monitorPriority;
     char		deviceMonitor;
     struct C_queue_t	entryQ;
     struct C_queue_t	reEntryQ;
@@ -56,13 +56,13 @@ struct	TLMON {
 };
 
 struct TLFTAB {
-    long	numFiles;
+    int32_t	numFiles;
     char	names[1];	/* really larger */
 };
 
 struct TLHAREA {
-    long		quitCode;
-    long		lineAndFile;
+    int32_t		quitCode;
+    int32_t		lineAndFile;
     struct TLFTAB	*fileTable;
     void		*nextHandler;
     jmp_buf		savedState;
@@ -152,14 +152,14 @@ double	fabs();	/* from C library */
 #define TLSMLSETCONST(x)	(1 << (x))
 #define TLSMLSMLSETCONST(x)	(1 << (x))
 #define TLLRGSETCLR(x)		{	\
-					register long TL_set = sizeof(x); \
+					register int32_t TL_set = sizeof(x); \
 					register unsigned char *TL_ptr = \
 						(unsigned char *)(x); \
 					for (;TL_set; TL_set--) \
 						*TL_ptr++ = 0; \
 				}
 #define TLLRGSETALL(x)		{	\
-					register long TL_set = sizeof(x); \
+					register int32_t TL_set = sizeof(x); \
 					register unsigned char *TL_ptr = \
 						(unsigned char *)(x); \
 					for (;TL_set; TL_set--) \
@@ -167,16 +167,16 @@ double	fabs();	/* from C library */
 				}
 #define TLLRGSETMANCONST(s, v)	s[(v) >> 3] |= 1 << ((v) & 7)
 #define TLLRGSETCONST(s, v)	{	\
-					register long TL_set = v; \
+					register int32_t TL_set = v; \
 					s[TL_set >> 3] |= 1 << (TL_set & 7); \
 				}
 #define TLLRGSETIN(var,v,s)	{ \
-					register long TL_set = v; \
+					register int32_t TL_set = v; \
 					var = (s[TL_set >> 3] & \
 						(1 << (TL_set & 7))) != 0; \
 				}
 #define TLLRGSETOP(res,a,b,op)	{	\
-					register long TL_set = sizeof(res); \
+					register int32_t TL_set = sizeof(res); \
 					register unsigned char *TL_ptr1 = \
 						(unsigned char *)(res); \
 					register unsigned char *TL_ptr2 = \
@@ -193,7 +193,7 @@ double	fabs();	/* from C library */
 #define TLLRGSETDIFF(res,a,b)	TLLRGSETOP(res,a,b, & ~)
 
 #define TLLRGSETAOP(a,b,op)	{	\
-					register long TL_set = sizeof(a); \
+					register int32_t TL_set = sizeof(a); \
 					register unsigned char *TL_ptr1 = \
 						(unsigned char *)(a); \
 					register unsigned char *TL_ptr2 = \
@@ -207,7 +207,7 @@ double	fabs();	/* from C library */
 #define TLLRGSETADIFF(a,b)	TLLRGSETAOP(a,b, &= ~)
 
 #define TLLRGSETCMP(res,a,b,op)	{	\
-					register long TL_set = sizeof(a); \
+					register int32_t TL_set = sizeof(a); \
 					register unsigned char *TL_ptr1 = \
 						(unsigned char *)(a); \
 					register unsigned char *TL_ptr2 = \
@@ -281,13 +281,13 @@ double	fabs();	/* from C library */
   * Device monitors
   */
 #define TLINITDEVICEMONITOR(var,name,prio) \
-    TL_TLM_TLMDINI( &(var), name, (long) prio )
+    TL_TLM_TLMDINI( &(var), name, (int32_t) prio )
 #define TLENTERDEVICEMONITOR(var) \
     TL_TLM_TLMDENT( &(var) )
 #define TLEXITDEVICEMONITOR(var) \
     TL_TLM_TLMDEXT( &(var) )
 #define TLINITINTRPROC(var,intNo,proc) \
-    TL_TLM_TLMIPINI( &(var), (long) intNo, proc )
+    TL_TLM_TLMIPINI( &(var), (int32_t) intNo, proc )
 #define TLENTERINTRPROC(var)
 #define TLEXITINTRPROC(var)
 
@@ -313,7 +313,7 @@ double	fabs();	/* from C library */
 /*
  * String helpers
  */
-#define TLSTRCATASS(dest,src,size) TL_TLS_TLSCTA(dest, (long) size, src)
+#define TLSTRCATASS(dest,src,size) TL_TLS_TLSCTA(dest, (int32_t) size, src)
 #define TLCHRSTRCMP(left,right,size) memcmp(left, right, size)
 
 /*
@@ -343,14 +343,14 @@ double	fabs();	/* from C library */
 				    } \
 				}
 
-#define	TLSAVELF()		long TL_LINE = TL_TLCPD->lineAndFile; \
+#define	TLSAVELF()		int32_t TL_LINE = TL_TLCPD->lineAndFile; \
 				struct TLFTAB *TL_FILE = TL_TLCPD->fileTable
 #define	TLRESTORELF()		TL_TLCPD->lineAndFile = TL_LINE; \
 				TL_TLCPD->fileTable = TL_FILE
 #define	TLSETL(lf)		TL_TLCPD->lineAndFile = lf
 #define	TLSETF()		TL_TLCPD->fileTable = (struct TLFTAB *) &TLFTAB
 #define	TLINCL()		TL_TLCPD->lineAndFile++
-#define	TLSTKCHKSLF(lf)		long TL_LINE; \
+#define	TLSTKCHKSLF(lf)		int32_t TL_LINE; \
 				struct TLFTAB *TL_FILE; \
 				if (((TLaddressint) &TL_FILE) < \
 					TL_TLCPD->stackLimit) { \

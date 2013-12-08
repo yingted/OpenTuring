@@ -20,8 +20,8 @@
 /*******************/
 /* System includes */
 /*******************/
-#include <crtdbg.h>
-#include "psapi.h"
+// #include <crtdbg.h>
+// #include "psapi.h"
 #include <stdio.h>
 
 /**********/
@@ -43,9 +43,9 @@
 /* Types */
 /*********/
 
-typedef BOOL (_stdcall *GetProcessMemoryInfoProc) (HANDLE Process,
+typedef BOOL (*GetProcessMemoryInfoProc) (HANDLE Process,
 		PPROCESS_MEMORY_COUNTERS ppsmemCounters, DWORD cb);
-typedef DWORD (_stdcall *GetGuiResourcesProc) (HANDLE hProcess, DWORD uiFlags);
+typedef DWORD (*GetGuiResourcesProc) (HANDLE hProcess, DWORD uiFlags);
 
 
 /**********************/
@@ -188,6 +188,7 @@ void	MDIO_OutputSystemInfo (const char *pmMessage)
 /************************************************************************/
 void	MDIO_ProcessMSWindowsError (DWORD pmMSWindowsErrorCode)
 {
+#if 0
     LPVOID myMessageBuffer;
 
     switch (pmMSWindowsErrorCode)
@@ -261,6 +262,7 @@ void	MDIO_ProcessMSWindowsError (DWORD pmMSWindowsErrorCode)
 	    }
     	    break;
     } // switch
+#endif
 } // MDIO_ProcessMSWindowsError
 /*
 
