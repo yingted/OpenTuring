@@ -6,8 +6,6 @@
 #include <sys/mman.h>
 #include <stdio.h>
 
-// #define USE_SECCOMP
-
 /* Self include */
 #include "tprolog.h"
 
@@ -183,7 +181,7 @@ int main(int argc, char* argv[])
     
     // seccomp!!!
 #define add(x,...) &&!(ret=seccomp_rule_add(ctx,SCMP_ACT_ALLOW,SCMP_SYS(x),__VA_ARGS__))
-#ifdef USE_SECCOMP
+#if USE_SECCOMP
     scmp_filter_ctx ctx;
     int ret;
     if((ctx=seccomp_init(SCMP_ACT_KILL))
@@ -238,7 +236,7 @@ int main(int argc, char* argv[])
 	    myErrorPathName, stErrorPtr -> text);
 	return 1;
     }
-#ifdef USE_SECCOMP
+#if USE_SECCOMP
     seccomp_release(ctx);
 #endif
 #endif

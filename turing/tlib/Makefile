@@ -15,7 +15,7 @@ EXES                  = tlib.exe
 ### Common settings
 
 #CEXTRA                = -mno-cygwin
-CEXTRA                =
+CEXTRA                = -m32
 CXXEXTRA              = -mno-cygwin
 RCEXTRA               =
 DEFINES               =
@@ -267,7 +267,7 @@ RC_SRCS               = $(tlib_exe_RC_SRCS)
 ### Tools
 
 #CC = winegcc
-CC = gcc-4.6
+CC = gcc
 CXX = wineg++
 RC = wrc
 AR = ar

@@ -296,6 +296,7 @@ CLEAN_FILES     = y.tab.c y.tab.h lex.yy.c core *.orig *.rej \
 clean:: $(SUBDIRS:%=%/__clean__) $(EXTRASUBDIRS:%=%/__clean__)
 	$(RM) $(CLEAN_FILES) $(RC_SRCS:.rc=.res) $(C_SRCS:.c=.o) $(CXX_SRCS:.cpp=.o)
 	$(RM) $(DLLS:%=%.so) $(LIBS) $(EXES) $(EXES:%=%.so)
+	$(RM) tprolog
 
 $(SUBDIRS:%=%/__clean__): dummy
 	cd `dirname $@` && $(MAKE) clean
@@ -317,4 +318,13 @@ $(sdl_dll_MODULE).so: $(sdl_dll_OBJS) $(sdl_dll_MODULE:.dll=.spec)
 $(sdl_gfx_dll_MODULE).so: $(sdl_gfx_dll_OBJS) $(sdl_gfx_dll_MODULE:.dll=.spec)
 	$(CC) $(sdl_gfx_dll_LDFLAGS) -o $@ $(sdl_gfx_dll_OBJS) $(sdl_gfx_dll_LIBRARY_PATH) $(sdl_gfx_dll_DLL_PATH) $(DEFLIB) $(sdl_gfx_dll_DLLS:%=-l%) $(sdl_gfx_dll_LIBRARIES:%=-l%)
 
-
+tprolog: bin
+	rm -rf tprolog
+	cp -rv bin tprolog
+	strip -s tprolog/*
+	mkdir -p tprolog/support
+	ln -s ../../package/support/predefs tprolog/support/
+	ln -s ../README tprolog/
+tprolog.zip: tprolog
+	rm -f tprolog.zip
+	zip -rv tprolog.zip tprolog

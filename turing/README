@@ -1,0 +1,13 @@
+Files:
+- README
+  * this document
+- support
+  * builtin turing headers
+  * needed by tprologc
+- tprolog
+  * bytecode interpreter
+  * takes absolute path to .tbc file
+- tprologc
+  * compiler
+  * takes absolute path to .t file
+  * writes to .tbc file
