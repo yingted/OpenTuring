@@ -188,8 +188,8 @@ ifeq ($(wildcard /usr/lib32),)
 else
 	LIB32=/usr/lib32
 endif
-ifeq (0,1) # use seccomp
-CFLAGS += -DUSE_SECCOMP
+ifeq (1,1) # use seccomp
+CFLAGS += -DUSE_SECCOMP=1
 ifeq ($(wildcard $(LIB32)/libseccomp.a),)
 	LIBSECCOMP=-I../../../libseccomp/include -lseccomp
 else
