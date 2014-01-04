@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <fcntl.h>
+#include <limits.h>
 
 
 #define CTRLZ	26
@@ -214,7 +215,10 @@ HomeDirectory(char* user, char* home)
 // Rewritten by Tom West (Oct 2000)
 void CurrentDirectory (char pmDirectory [256])
 {
-    getcwd(pmDirectory, 256);
+    char buf[PATH_MAX];
+    getwd(buf);
+    strncpy(pmDirectory, buf, 256);
+    pmDirectory[256-1] = '\0';
     int len = strlen(pmDirectory);
     if (pmDirectory[len-1] != '/') {
         pmDirectory[len] = '/';
@@ -335,7 +339,10 @@ static void ConvertPath(char* path)
 
 void FullPath(char path[256], char fpath[256])
 {
-    realpath(path, fpath);
+    char buf[PATH_MAX];
+    realpath(path, buf);
+    strncpy(fpath, buf, 256);
+    fpath[256-1] = '\0';
 }
 
 
@@ -354,7 +361,7 @@ GetFID(char* file, struct FID* fid_p )
 	fid_p->t = 0;
     }
     else {
-        realpath(file, fid_p->n);
+        FullPath(file, fid_p->n);
     	fid_p->t = statBuf.st_mtime;
     }
 }
